@@ -23,7 +23,7 @@ pub async fn get_tbl_type(
     query: Option<String>,
     col: Option<String>,
 ) -> Result<Vec<TblType>, sqlx::Error> {
-    let mut base_query = String::from("SELECT typeid, description, isactive, usrupd, dtmupd FROM tblType WHERE 1=1");
+    let mut base_query = String::from("SELECT * FROM tblType");
 
     if let Some(query_str) = query {
         if let Some(col_name) = col {
