@@ -16,7 +16,7 @@ pub async fn get_tbl_type_dynamic(
     isactive, 
     usrupd, 
     CONVERT(VARCHAR, dtmupd, 120) as dtmupd 
-    FROM tblTyp"
+    FROM tblType"
     );
 
     if let Some(query_str) = query {
