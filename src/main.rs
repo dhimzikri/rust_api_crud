@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use rocket::tokio;
 use rocket::{launch, Rocket, Build};
 use rocket::fairing::AdHoc;
+use sqlx::mssql::MssqlRow;
 
 // Query parameters structure
 #[derive(serde::Deserialize)]
