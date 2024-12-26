@@ -24,12 +24,6 @@ async fn fetch_tbl_type(
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
-    let rocket = rocket::build()
-        .configure(rocket::Config {
-            address: "0.0.0.0".parse().unwrap(), // Bind to all interfaces
-            port: 8585,                         // Use port 8080
-            ..Default::default()
-        });
     // Database connection string
     let database_url = "mssql://sa:pass,123@172.16.6.31/Portal_HelpDesk_CS";
 

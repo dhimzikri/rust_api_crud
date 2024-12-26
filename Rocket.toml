@@ -1,0 +1,3 @@
+[default]
+address = "0.0.0.0"   # Change this to the desired IP (e.g., your server's public/private IP)
+port = 8585           # Change this to your desired port
