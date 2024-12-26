@@ -12,6 +12,7 @@ use serde_json::Value;  // Import Value from serde_json
 mod gridcase;
 
 use gridcase::get_tbl_type_dynamic;  // Import the updated function
+use gridcase::get_contact;  // Import the updated function
 
 // Route to fetch tblType data
 #[get("/tblType?<query>&<col>")]
