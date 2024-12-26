@@ -11,8 +11,7 @@ use serde_json::Value;  // Import Value from serde_json
 
 mod gridcase;
 
-use gridcase::get_tbl_type_dynamic;  // Import the updated function
-use gridcase::get_contact;  // Import the updated function
+use gridcase::{get_tbl_type_dynamic,get_contact};  // Import the updated function
 
 // Route to fetch tblType data
 #[get("/tblType?<query>&<col>")]
@@ -38,6 +37,17 @@ async fn fetch_tbl_contact(
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
 }
+#[get("/readgettblSubType?<query>&<col>")]
+async fn fetch_tbl_contact(
+    db_pool: &State<MssqlPool>,
+    query: Option<String>,
+    col: Option<String>,
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
+    match readgettblSubType(db_pool.inner(), query, col).await {
+        Ok(data) => Ok(Json(data)),
+        Err(err) => Err(format!("Failed to fetch data: {}", err)),
+    }
+}
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
@@ -55,8 +65,7 @@ async fn main() -> Result<(), rocket::Error> {
     // Launch the Rocket application
     rocket::build()
         .manage(db_pool)
-        .mount("/", routes![fetch_tbl_type])
-        .mount("/", routes![fetch_tbl_contact])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readgettblSubType])
         .launch()
         .await?;
 
