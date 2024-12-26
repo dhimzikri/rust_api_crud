@@ -85,7 +85,7 @@ pub async fn get_contact(
         let mut row_map = HashMap::new();
 
         // Extract specific columns from the row
-        let contactid: i32 = row.try_get("ContactId")?;
+        let contactid: String = row.try_get("contactid")?;
         let description: String = row.try_get("Description")?;
         let isactive: bool = row.try_get("isactive")?;
         let usrupd: String = row.try_get("usrupd")?;
@@ -101,7 +101,7 @@ pub async fn get_contact(
         };
 
         // Insert the values into the HashMap
-        row_map.insert("ContactId".to_string(), Value::Number(contactid.into()));
+        row_map.insert("contactid".to_string(), Value::Number(contactid.into()));
         row_map.insert("Description".to_string(), Value::String(description));
         row_map.insert("isactive".to_string(), Value::Bool(isactive));
         row_map.insert("usrupd".to_string(), Value::String(usrupd));
