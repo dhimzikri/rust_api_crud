@@ -38,7 +38,7 @@ async fn fetch_tbl_contact(
     }
 }
 #[get("/readgettblSubType?<query>&<col>")]
-async fn fetch_tbl_contact(
+async fn readSubType(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
@@ -65,7 +65,7 @@ async fn main() -> Result<(), rocket::Error> {
     // Launch the Rocket application
     rocket::build()
         .manage(db_pool)
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readgettblSubType])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType])
         .launch()
         .await?;
 

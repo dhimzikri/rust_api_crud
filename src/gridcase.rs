@@ -113,15 +113,14 @@ pub async fn get_contact(
     Ok(result)
 }
 
-pub async fn readgettblSubType(
+pub async fn readgettbl_subtype(
     db_pool: &MssqlPool,
     query: Option<String>,
     col: Option<String>,
     typeid: i32,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let mut base_query = String::from(
-        "SELECT SubTypeID, SubDescription, TypeID, cost_center, estimasi, isactive, usrupd, 
-        CONVERT(VARCHAR, dtmupd, 120) as dtmupd FROM tblSubType WHERE typeid = {} AND isactive = 1",
+        "SELECT subtypeid, subdescription, typeid, isactive, cost_center, estimasi, usrupd, dtmupd FROM tblSubType WHERE typeid = {} AND isactive = 1",
         typeid
     );
 
@@ -129,44 +128,50 @@ pub async fn readgettblSubType(
         base_query.push_str(&format!(" AND {} LIKE '%{}%'", col_name, query_str));
     }
 
-    // Perform the query and retrieve rows
     let rows = sqlx::query(&base_query).fetch_all(db_pool).await?;
+    
+    let mut result = ResultData {
+        success: false,
+        total: None,
+        data: None,
+    };
 
-    let mut result = Vec::new();
+    if !rows.is_empty() {
+        let mut msg = Vec::new();
 
-    for row in rows {
-        let mut row_map = HashMap::new();
+        for row in rows {
+            let subtypeid: i32 = row.try_get("subtypeid")?;
+            let subdescription: String = row.try_get("subdescription")?;
+            let typeid: i32 = row.try_get("typeid")?;
+            let cost_center: String = row.try_get("cost_center")?;
+            let estimasi: i32 = row.try_get("estimasi")?;
+            let isactive: bool = row.try_get("isactive")?;
+            let usrupd: String = row.try_get("usrupd")?;
+            // Handle `dtmupd`: Parse or fallback to an empty string
+            let dtmupd: String = match row.try_get::<Option<String>, _>("dtmupd")? {
+                Some(dtm) => {
+                    NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
+                        .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
+                        .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
+                }
 
-        // Extract specific columns from the row
-        let SubTypeID: String = row.try_get("SubTypeID")?;
-        let SubDescription: String = row.try_get("SubDescription")?;
-        let TypeID: bool = row.try_get("TypeID")?;
-        let cost_center: String = row.try_get("cost_center")?;
-        let estimasi: String = row.try_get("estimasi")?;
-        let isactive: bool = row.try_get("isactive")?;
-        let cost_center: String = row.try_get("cost_center")?;
-        let cost_center: String = row.try_get("cost_center")?;
+            let mut row_map = HashMap::new();
+            row_map.insert("subtypeid".to_string(), Value::Number(subtypeid.into()));
+            row_map.insert("subdescription".to_string(), Value::String(subdescription));
+            row_map.insert("typeid".to_string(), Value::Number(typeid.into()));
+            row_map.insert("cost_center".to_string(), Value::String(cost_center));
+            row_map.insert("estimasi".to_string(), Value::Number(estimasi));
+            row_map.insert("isactive".to_string(), Value::Bool(isactive));
+            row_map.insert("usrupd".to_string(), Value::String(usrupd));
+            row_map.insert("dtmupd".to_string(), Value::String(dtmupd));
 
-        // Handle `dtmupd`: Parse or fallback to an empty string
-        let dtmupd: String = match row.try_get::<Option<String>, _>("dtmupd")? {
-            Some(dtm) => {
-                NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
-                    .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
-                    .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
-            }
-            None => "".to_string(), // Handle NULL case
-        };
+            msg.push(row_map);
+        }
 
-        // Insert the values into the HashMap
-        row_map.insert("SubTypeID".to_string(), Value::Number(SubTypeID));
-        row_map.insert("SubDescription".to_string(), Value::String(SubDescription));
-        row_map.insert("TypeID".to_string(), Value::Bool(TypeID));
-        row_map.insert("estimasi".to_string(), Value::String(estimasi));
-        row_map.insert("dtmupd".to_string(), Value::String(dtmupd));
-        row_map.insert("isactive".to_string(), Value::bool(dtmupd));
-
-        result.push(row_map);
+        result.success = true;
+        result.total = Some(rows.len() as i64);
+        result.data = Some(msg);
     }
 
-    Ok(result)
+    Ok(serde_json::to_string(&result)?)
 }
