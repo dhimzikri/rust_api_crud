@@ -101,7 +101,7 @@ pub async fn get_contact(
         };
 
         // Insert the values into the HashMap
-        row_map.insert("contactid".to_string(), Value::Number(contactid.into()));
+        row_map.insert("contactid".to_string(), Value::String(contactid));
         row_map.insert("Description".to_string(), Value::String(description));
         row_map.insert("isactive".to_string(), Value::Bool(isactive));
         row_map.insert("usrupd".to_string(), Value::String(usrupd));
