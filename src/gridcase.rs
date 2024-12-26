@@ -39,7 +39,7 @@ pub async fn get_tbl_type_dynamic(
         let dtmupd: String = match row.try_get::<Option<String>, _>("dtmupd")? {
             Some(dtm) => {
                 NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
-                    .map(|dt| dt.to_string())
+                    .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
                     .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
             }
             None => "".to_string(), // Handle NULL case
