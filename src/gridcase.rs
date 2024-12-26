@@ -1,5 +1,5 @@
 use sqlx::{query, MssqlPool};
-use sqlx::Row;  // Import the Row trait
+use sqlx::Row;
 use serde_json::Value;
 use std::collections::HashMap;
 use chrono::NaiveDateTime;
@@ -10,7 +10,13 @@ pub async fn get_tbl_type_dynamic(
     col: Option<String>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let mut base_query = String::from(
-        "SELECT TypeID, Description, isactive, usrupd, CAST(dtmupd AS VARCHAR) as dtmupd FROM tblType"
+        "SELECT 
+    TypeID, 
+    Description, 
+    isactive, 
+    usrupd, 
+    CONVERT(VARCHAR, dtmupd, 120) as dtmupd 
+    FROM tblType"
     );
 
     if let Some(query_str) = query {
@@ -34,21 +40,23 @@ pub async fn get_tbl_type_dynamic(
         let description: String = row.try_get("Description")?;
         let isactive: bool = row.try_get("isactive")?;
         let usrupd: String = row.try_get("usrupd")?;
-        
-        // Parse `dtmupd` into `NaiveDateTime`
-        let dtmupd: Option<NaiveDateTime> = row
-            .try_get::<Option<String>, _>("dtmupd")?
-            .and_then(|dtm| NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S").ok());
+
+        // Handle `dtmupd`: Parse or fallback to an empty string
+        let dtmupd: String = match row.try_get::<Option<String>, _>("dtmupd")? {
+            Some(dtm) => {
+                NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
+                    .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
+                    .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
+            }
+            None => "".to_string(), // Handle NULL case
+        };
 
         // Insert the values into the HashMap
         row_map.insert("TypeID".to_string(), Value::Number(typeid.into()));
         row_map.insert("Description".to_string(), Value::String(description));
         row_map.insert("isactive".to_string(), Value::Bool(isactive));
         row_map.insert("usrupd".to_string(), Value::String(usrupd));
-        row_map.insert(
-            "dtmupd".to_string(),
-            Value::String(dtmupd.map_or_else(|| "".to_string(), |dt| dt.to_string())),
-        );
+        row_map.insert("dtmupd".to_string(), Value::String(dtmupd));
 
         result.push(row_map);
     }
