@@ -34,22 +34,20 @@ pub async fn get_tbl_type_dynamic(
         let isactive: bool = row.try_get("isactive")?;
         let usrupd: String = row.try_get("usrupd")?;
         
-        // Handling DateTime column
-        let dtmupd: Option<NaiveDateTime> = row.try_get("dtmupd").ok();  // Convert to NaiveDateTime
+        // Fetch `dtmupd` as an Option<String> and parse it to `NaiveDateTime`
+        let dtmupd: Option<NaiveDateTime> = row
+            .try_get::<Option<String>, _>("dtmupd")?
+            .and_then(|dtm| NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S").ok());
 
         // Insert the values into the HashMap
         row_map.insert("TypeID".to_string(), Value::Number(typeid.into()));
         row_map.insert("Description".to_string(), Value::String(description));
         row_map.insert("isactive".to_string(), Value::Bool(isactive));
         row_map.insert("usrupd".to_string(), Value::String(usrupd));
-        
-        // Handle the dtmupd field (convert to string)
-        let dtmupd_value = match dtmupd {
-            Some(dt) => Value::String(dt.to_string()), // Convert to String
-            None => Value::String("".to_string()),  // If None, default to empty string
-        };
-        
-        row_map.insert("dtmupd".to_string(), dtmupd_value);
+        row_map.insert(
+            "dtmupd".to_string(),
+            Value::String(dtmupd.map_or_else(|| "".to_string(), |dt| dt.to_string())),
+        );
 
         result.push(row_map);
     }
