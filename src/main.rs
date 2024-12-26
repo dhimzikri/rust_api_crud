@@ -4,6 +4,8 @@ extern crate rocket;
 use rocket::serde::json::Json;
 use rocket::State;
 use sqlx::MssqlPool;
+use std::collections::HashMap;  // Import HashMap from std::collections
+use serde_json::Value;  // Import Value from serde_json
 
 mod gridcase;
 
@@ -15,7 +17,7 @@ async fn fetch_tbl_type(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
-) -> Result<Json<Vec<HashMap<String, serde_json::Value>>>, String> {
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
     match get_tbl_type_dynamic(db_pool.inner(), query, col).await {
         Ok(data) => Ok(Json(data)),
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
