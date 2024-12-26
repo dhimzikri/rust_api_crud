@@ -56,6 +56,7 @@ async fn main() -> Result<(), rocket::Error> {
     rocket::build()
         .manage(db_pool)
         .mount("/", routes![fetch_tbl_type])
+        .mount("/", routes![fetch_tbl_contact])
         .launch()
         .await?;
 
