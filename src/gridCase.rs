@@ -1,49 +1,37 @@
-use rocket::serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool};
+use sqlx::{query_as, MssqlPool};
+use serde::Serialize;
 
-// Define the structure for the response data
-#[derive(Serialize, FromRow)]
+// Define the TblType struct for the database rows
+#[derive(Serialize, sqlx::FromRow)]
 pub struct TblType {
     pub typeid: i32,
     pub description: String,
     pub isactive: bool,
     pub usrupd: String,
-    pub dtmupd: String,
+    pub dtmupd: Option<String>,
 }
 
-// Query parameters for filtering
-#[derive(Deserialize)]
+// Query parameters
 pub struct QueryParams {
     pub query: Option<String>,
     pub col: Option<String>,
 }
 
-// Function to query tblType data from the database
+// Function to fetch data from tblType
 pub async fn get_tbl_type(
-    pool: &PgPool,
+    db_pool: &MssqlPool,
     query: Option<String>,
     col: Option<String>,
 ) -> Result<Vec<TblType>, sqlx::Error> {
-    // Base condition
-    let mut src = "0 = 0".to_string();
+    let mut base_query = String::from("SELECT typeid, description, isactive, usrupd, dtmupd FROM tblType WHERE 1=1");
 
-    // Add filtering if query and column are provided
-    if let (Some(query), Some(col)) = (query, col) {
-        src = format!("{} AND {} LIKE '%{}%'", src, col, query);
+    if let Some(query_str) = query {
+        if let Some(col_name) = col {
+            base_query.push_str(&format!(" AND {} LIKE '%{}%'", col_name, query_str));
+        }
     }
 
-    // SQL query
-    let query_str = format!(
-        "
-        SELECT typeid, description, isactive, usrupd, dtmupd
-        FROM tblType
-        WHERE {}
-        ",
-        src
-    );
-
-    // Execute the query and fetch results
-    sqlx::query_as::<_, TblType>(&query_str)
-        .fetch_all(pool)
+    query_as::<_, TblType>(&base_query)
+        .fetch_all(db_pool)
         .await
 }
