@@ -1,17 +1,12 @@
-#[macro_use]
-extern crate rocket;
+#[macro_use] extern crate rocket;
 
-use rocket::serde::json::Json;
-use rocket::State;
+use rocket::{serde::json::Json, State};
 use sqlx::MssqlPool;
+use serde_json::Value;
+use crate::gridCase::{get_tbl_type, QueryParams}; // Import from the gridCase module
 
-mod gridcase;
-
-use gridcase::{get_tbl_type, QueryParams};
-
-// Route to fetch tblType data
-#[get("/tblType?<query>&<col>", data="<params>")]
-async fn fetch_tbl_type(
+#[post("/get_case_data", data = "<params>")]
+async fn get_case_data(
     db_pool: &State<MssqlPool>,
     params: Json<QueryParams>,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
@@ -27,20 +22,8 @@ async fn fetch_tbl_type(
     }
 }
 
-#[rocket::main]
-async fn main() -> Result<(), rocket::Error> {
-    // Database connection string
-    let database_url = "mssql://sa:pass,123@172.16.6.31/Portal_HelpDesk_CS";
-
-    // Create a database connection pool
-    let db_pool = MssqlPool::connect_lazy(database_url).expect("Failed to create database pool");
-
-    // Launch the Rocket application
+#[launch]
+fn rocket() -> _ {
     rocket::build()
-        .manage(db_pool)
-        .mount("/", routes![fetch_tbl_type])
-        .launch()
-        .await?;
-
-    Ok(())
+        .mount("/", routes![get_case_data]) // Mount the route
 }

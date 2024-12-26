@@ -2,7 +2,7 @@ use sqlx::{query, MssqlPool};
 use serde_json::Value;
 use std::collections::HashMap;
 
-// Query parameters
+// Query parameters structure
 pub struct QueryParams {
     pub query: Option<String>,
     pub col: Option<String>,
@@ -14,16 +14,16 @@ pub async fn get_tbl_type(
     query: Option<String>,
     col: Option<String>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
-    let mut base_query = String::from("SELECT * FROM tblType");
+    let mut base_query = String::from("SELECT * FROM tblType WHERE 1=1");
 
-    // If a query and column are provided, modify the query
+    // Modify query if parameters are provided
     if let Some(query_str) = query {
         if let Some(col_name) = col {
             base_query.push_str(&format!(" AND {} LIKE '%{}%'", col_name, query_str));
         }
     }
 
-    // Execute the query and collect results as a vector of HashMaps
+    // Execute the query to fetch rows from the database
     let rows = query(&base_query)
         .fetch_all(db_pool)
         .await?;
