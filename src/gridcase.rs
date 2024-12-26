@@ -166,7 +166,7 @@ pub async fn get_contact(
         row_map.insert("TypeID".to_string(), Value::Number(TypeID.into()));
         row_map.insert("cost_center".to_string(), Value::String(cost_center));
         row_map.insert("isactive".to_string(), Value::Bool(isactive));
-        row_map.insert("estimasi".to_string(), Value::Nubmer(estimasi.into()));
+        row_map.insert("estimasi".to_string(), Value::Number(estimasi.into()));
         row_map.insert("usrupd".to_string(), Value::String(usrupd));
         row_map.insert("dtmupd".to_string(), Value::String(dtmupd));
 
