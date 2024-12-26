@@ -26,10 +26,10 @@ pub async fn get_tbl_type_dynamic(
     }
 
     // Execute the query and fetch rows as a Vec<HashMap<String, Value>>
-    let rows = query(&base_query)
+    let rows = sqlx::query(&base_query)
         .fetch_all(db_pool)
         .await?;
-
+    
     // Map each row into a HashMap<String, Value>
     let mut result = Vec::new();
 
