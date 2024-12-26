@@ -9,7 +9,9 @@ pub async fn get_tbl_type_dynamic(
     query: Option<String>,
     col: Option<String>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
-    let mut base_query = String::from("SELECT * FROM tblType");
+    let mut base_query = String::from(
+        "SELECT TypeID, Description, isactive, usrupd, CAST(dtmupd AS VARCHAR) as dtmupd FROM tblType"
+    );
 
     if let Some(query_str) = query {
         if let Some(col_name) = col {
@@ -22,7 +24,6 @@ pub async fn get_tbl_type_dynamic(
         .fetch_all(db_pool)
         .await?;
 
-    // Map each row into a HashMap<String, Value>
     let mut result = Vec::new();
 
     for row in rows {
@@ -34,7 +35,7 @@ pub async fn get_tbl_type_dynamic(
         let isactive: bool = row.try_get("isactive")?;
         let usrupd: String = row.try_get("usrupd")?;
         
-        // Fetch `dtmupd` as an Option<String> and parse it to `NaiveDateTime`
+        // Parse `dtmupd` into `NaiveDateTime`
         let dtmupd: Option<NaiveDateTime> = row
             .try_get::<Option<String>, _>("dtmupd")?
             .and_then(|dtm| NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S").ok());
