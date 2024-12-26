@@ -16,7 +16,7 @@ pub async fn get_tbl_type_dynamic(
     }
 
     // Perform the query and retrieve rows
-    let rows = query(&base_query)
+    let rows = sqlx::query(&base_query)
         .fetch_all(db_pool)
         .await?;
 
