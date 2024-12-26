@@ -4,6 +4,7 @@ use rocket::{serde::json::Json, routes};
 use sqlx::MssqlPool;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use serde_json::Value;
 
 #[derive(Deserialize, Serialize)]  // Add Deserialize here
 pub struct QueryParams {
