@@ -1,32 +1,25 @@
 #[macro_use] extern crate rocket;
 
-use rocket::{serde::json::Json, State};
+use rocket::{serde::json::Json, routes};
 use sqlx::MssqlPool;
-use serde_json::Value;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-mod gridcase;
-use crate::gridcase::{get_tbl_type, QueryParams}; // Import from the gridCase module
+#[derive(Deserialize, Serialize)]  // Add Deserialize here
+pub struct QueryParams {
+    pub query: Option<String>,
+    pub col: Option<String>,
+}
 
-#[post("/get_case_data", data = "<params>")]
-async fn get_case_data(
-    db_pool: &State<MssqlPool>,
-    params: Json<QueryParams>,
-) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
-    let result = get_tbl_type(
-        &db_pool,
-        params.query.clone(),
-        params.col.clone(),
-    ).await;
-
-    match result {
-        Ok(data) => Ok(Json(data)),
-        Err(e) => Err(format!("Error fetching data: {}", e)),
-    }
+#[post("/fetch", format = "json", data = "<params>")]
+async fn fetch_data(params: Json<QueryParams>, db_pool: MssqlPool) -> Json<Vec<HashMap<String, Value>>> {
+    // Call the `get_tbl_type` function with params
+    let result = get_tbl_type(&db_pool, params.query.clone(), params.col.clone()).await;
+    Json(result.unwrap_or_else(|_| Vec::new()))  // Return the fetched data
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build()
-        .mount("/", routes![get_case_data]) // Mount the route
+    rocket::build().mount("/", routes![fetch_data])
 }
+

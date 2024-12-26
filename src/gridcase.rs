@@ -11,20 +11,20 @@ pub struct QueryParams {
 // Function to fetch data from tblType without using a struct
 pub async fn get_tbl_type(
     db_pool: &MssqlPool,
-    query: Option<String>,
+    query_str: Option<String>,  // Renamed variable to avoid conflict with sqlx::query
     col: Option<String>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let mut base_query = String::from("SELECT * FROM tblType WHERE 1=1");
 
     // If query and column parameters are provided, modify the query
-    if let Some(query_str) = query {
+    if let Some(query_value) = query_str {
         if let Some(col_name) = col {
             // Safely format the query by unwrapping Options
-            base_query.push_str(&format!(" AND {} LIKE '%{}%'", col_name, query_str));
+            base_query.push_str(&format!(" AND {} LIKE '%{}%'", col_name, query_value));
         }
     }
 
-    // Execute the query to fetch rows from the database
+    // Execute the query to fetch rows from the database using sqlx::query
     let rows = query(&base_query)
         .fetch_all(db_pool)
         .await?;
