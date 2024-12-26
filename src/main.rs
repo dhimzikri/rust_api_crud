@@ -26,6 +26,18 @@ async fn fetch_tbl_type(
     }
 }
 
+#[get("/get_contact?<query>&<col>")]
+async fn fetch_tbl_contact(
+    db_pool: &State<MssqlPool>,
+    query: Option<String>,
+    col: Option<String>,
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
+    match get_contact(db_pool.inner(), query, col).await {
+        Ok(data) => Ok(Json(data)),
+        Err(err) => Err(format!("Failed to fetch data: {}", err)),
+    }
+}
+
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
     // Load environment variables from .env file
