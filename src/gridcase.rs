@@ -21,21 +21,25 @@ pub async fn get_tbl_type_dynamic(
         .fetch_all(db_pool)
         .await?;
 
-    // Process the rows into a dynamic structure
+    // Map each row into a HashMap<String, Value>
     let mut result = Vec::new();
+
     for row in rows {
         let mut row_map = HashMap::new();
 
-        // Get all columns dynamically
-        for column in row.columns() {
-            let column_name = column.name().to_string();
-            let column_value: Value = match row.try_get::<Value, _>(&column_name) {
-                Ok(value) => value,
-                Err(_) => Value::Null, // If there's an error (like unsupported types), set to Null
-            };
+        // Extract specific columns from the row
+        let typeid: i32 = row.try_get("TypeID")?;
+        let description: String = row.try_get("Description")?;
+        let isactive: bool = row.try_get("isactive")?;
+        let usrupd: String = row.try_get("usrupd")?;
+        let dtmupd: Option<String> = row.try_get("dtmupd").ok();  // Optional field
 
-            row_map.insert(column_name, column_value);
-        }
+        // Insert the values into the HashMap
+        row_map.insert("TypeID".to_string(), Value::Number(typeid.into()));
+        row_map.insert("Description".to_string(), Value::String(description));
+        row_map.insert("isactive".to_string(), Value::Bool(isactive));
+        row_map.insert("usrupd".to_string(), Value::String(usrupd));
+        row_map.insert("dtmupd".to_string(), Value::String(dtmupd.unwrap_or_default()));
 
         result.push(row_map);
     }
