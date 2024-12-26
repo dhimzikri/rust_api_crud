@@ -2,39 +2,29 @@
 extern crate rocket;
 
 use dotenv::dotenv;
+use std::env;
 use rocket::serde::json::Json;
 use rocket::State;
-use serde_json::Value;
 use sqlx::MssqlPool;
-use std::collections::HashMap;
-use std::env;
+use std::collections::HashMap;  // Import HashMap from std::collections
+use serde_json::Value;  // Import Value from serde_json
 
 mod gridcase;
-use gridcase::{get_tbl_type_dynamic, get_contact};
 
-// Generic route handler for fetching data
-async fn fetch_data<F>(
-    db_pool: &State<MssqlPool>,
-    query: Option<String>,
-    col: Option<String>,
-    fetch_fn: F,
-) -> Result<Json<Vec<HashMap<String, Value>>>, String>
-where
-    F: FnOnce(&MssqlPool, Option<String>, Option<String>) -> tokio::task::JoinHandle<Result<Vec<HashMap<String, Value>>, sqlx::Error>>,
-{
-    match fetch_fn(db_pool.inner(), query, col).await {
-        Ok(data) => Ok(Json(data)),
-        Err(err) => Err(format!("Failed to fetch data: {}", err)),
-    }
-}
+use gridcase::get_tbl_type_dynamic;  // Import the updated function
+use gridcase::get_contact;  // Import the updated function
 
+// Route to fetch tblType data
 #[get("/tblType?<query>&<col>")]
 async fn fetch_tbl_type(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
-) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
-    fetch_data(db_pool, query, col, |db, q, c| tokio::spawn(get_tbl_type_dynamic(db, q, c))).await
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
+    match get_tbl_type_dynamic(db_pool.inner(), query, col).await {
+        Ok(data) => Ok(Json(data)),
+        Err(err) => Err(format!("Failed to fetch data: {}", err)),
+    }
 }
 
 #[get("/get_contact?<query>&<col>")]
@@ -42,20 +32,31 @@ async fn fetch_tbl_contact(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
-) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
-    fetch_data(db_pool, query, col, |db, q, c| tokio::spawn(get_contact(db, q, c))).await
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
+    match get_contact(db_pool.inner(), query, col).await {
+        Ok(data) => Ok(Json(data)),
+        Err(err) => Err(format!("Failed to fetch data: {}", err)),
+    }
 }
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
+    // Load environment variables from .env file
     dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let db_pool = MssqlPool::connect_lazy(&database_url).expect("Failed to create database pool");
+    // Fetch the database URL from the environment variable
+    let database_url = env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set in the environment");
 
+    // Create a database connection pool
+    let db_pool = MssqlPool::connect_lazy(&database_url)
+        .expect("Failed to create database pool");
+
+    // Launch the Rocket application
     rocket::build()
         .manage(db_pool)
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact])
+        .mount("/", routes![fetch_tbl_type])
+        .mount("/", routes![fetch_tbl_contact])
         .launch()
         .await?;
 
