@@ -113,7 +113,7 @@ pub async fn get_contact(
     Ok(result)
 }
 
-pub async fn get_contact(
+pub async fn readgettblSubType(
     db_pool: &MssqlPool,
     query: Option<String>,
     col: Option<String>,
