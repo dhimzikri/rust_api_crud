@@ -161,7 +161,7 @@ pub async fn get_contact(
         };
 
         // Insert the values into the HashMap
-        row_map.insert("SubTypeID".to_string(), Value::Nubmer(SubTypeID.into()));
+        row_map.insert("SubTypeID".to_string(), Value::Number(SubTypeID.into()));
         row_map.insert("SubDescription".to_string(), Value::String(SubDescription));
         row_map.insert("TypeID".to_string(), Value::Number(TypeID.into()));
         row_map.insert("cost_center".to_string(), Value::String(cost_center));
