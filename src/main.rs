@@ -7,18 +7,23 @@ use sqlx::MssqlPool;
 
 mod gridcase;
 
-use gridcase::{get_tbl_type, QueryParams, TblType};
+use gridcase::{get_tbl_type, QueryParams};
 
 // Route to fetch tblType data
-#[get("/tblType?<query>&<col>")]
+#[get("/tblType?<query>&<col>", data="<params>")]
 async fn fetch_tbl_type(
     db_pool: &State<MssqlPool>,
-    query: Option<String>,
-    col: Option<String>,
-) -> Result<Json<Vec<TblType>>, String> {
-    match get_tbl_type(db_pool.inner(), query, col).await {
+    params: Json<QueryParams>,
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
+    let result = get_tbl_type(
+        &db_pool,
+        params.query.clone(),
+        params.col.clone(),
+    ).await;
+
+    match result {
         Ok(data) => Ok(Json(data)),
-        Err(err) => Err(format!("Failed to fetch data: {}", err)),
+        Err(e) => Err(format!("Error fetching data: {}", e)),
     }
 }
 
