@@ -10,7 +10,13 @@ pub async fn get_tbl_type_dynamic(
     col: Option<String>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let mut base_query = String::from(
-        "SELECT TypeID, Description, isactive, usrupd, CAST(dtmupd AS VARCHAR) as dtmupd FROM tblType"
+        "SELECT 
+    TypeID, 
+    Description, 
+    isactive, 
+    usrupd, 
+    CONVERT(VARCHAR, dtmupd, 120) as dtmupd 
+    FROM tblTyp"
     );
 
     if let Some(query_str) = query {
