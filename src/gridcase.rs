@@ -117,12 +117,10 @@ pub async fn readgettblSubType(
     db_pool: &MssqlPool,
     query: Option<String>,
     col: Option<String>,
-    typeid: i32,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let mut base_query = String::from(
         "SELECT SubTypeID, SubDescription, TypeID, cost_center, estimasi, isactive, usrupd, 
         CONVERT(VARCHAR, dtmupd, 120) as dtmupd FROM tblSubType WHERE typeid = {} AND isactive = 1",
-        typeid
     );
 
     if let Some(query_str) = query {
