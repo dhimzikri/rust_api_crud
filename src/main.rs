@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate rocket;
 
+use dotenv::dotenv;
+use std::env;
 use rocket::serde::json::Json;
 use rocket::State;
 use sqlx::MssqlPool;
@@ -26,11 +28,16 @@ async fn fetch_tbl_type(
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
-    // Database connection string
-    let database_url = "mssql://sa:pass,123@172.16.6.31:1433/Portal_HelpDesk_CS";
+    // Load environment variables from .env file
+    dotenv().ok();
+
+    // Fetch the database URL from the environment variable
+    let database_url = env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set in the environment");
 
     // Create a database connection pool
-    let db_pool = MssqlPool::connect_lazy(database_url).expect("Failed to create database pool");
+    let db_pool = MssqlPool::connect_lazy(&database_url)
+        .expect("Failed to create database pool");
 
     // Launch the Rocket application
     rocket::build()
