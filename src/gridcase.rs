@@ -1,43 +1,37 @@
-use sqlx::{query, MssqlPool};
-use serde_json::Value;
-use std::collections::HashMap;
+use sqlx::{query_as, MssqlPool};
+use serde::Serialize;
 
-// Query parameters structure
+// Define the TblType struct for the database rows
+#[derive(Serialize, sqlx::FromRow)]
+pub struct TblType {
+    pub typeid: i32,
+    pub description: String,
+    pub isactive: bool,
+    pub usrupd: String,
+    pub dtmupd: Option<String>,
+}
+
+// Query parameters
 pub struct QueryParams {
     pub query: Option<String>,
     pub col: Option<String>,
 }
 
-// Function to fetch data from tblType without using a struct
+// Function to fetch data from tblType
 pub async fn get_tbl_type(
     db_pool: &MssqlPool,
-    query_str: Option<String>,  // Renamed variable to avoid conflict with sqlx::query
+    query: Option<String>,
     col: Option<String>,
-) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
-    let mut base_query = String::from("SELECT * FROM tblType WHERE 1=1");
+) -> Result<Vec<TblType>, sqlx::Error> {
+    let mut base_query = String::from("SELECT typeid, description, isactive, usrupd, dtmupd FROM tblType WHERE 1=1");
 
-    // If query and column parameters are provided, modify the query
-    if let Some(query_value) = query_str {
+    if let Some(query_str) = query {
         if let Some(col_name) = col {
-            // Safely format the query by unwrapping Options
-            base_query.push_str(&format!(" AND {} LIKE '%{}%'", col_name, query_value));
+            base_query.push_str(&format!(" AND {} LIKE '%{}%'", col_name, query_str));
         }
     }
 
-    // Execute the query to fetch rows from the database using sqlx::query
-    let rows = query(&base_query)
+    query_as::<_, TblType>(&base_query)
         .fetch_all(db_pool)
-        .await?;
-
-    // Map the rows into a vector of HashMaps (key: column name, value: column value)
-    let mut result = Vec::new();
-    for row in rows {
-        let mut row_map = HashMap::new();
-        for (column, value) in row.into_iter() {
-            row_map.insert(column, value);
-        }
-        result.push(row_map);
-    }
-
-    Ok(result)
+        .await
 }
