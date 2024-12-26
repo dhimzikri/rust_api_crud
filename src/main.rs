@@ -42,6 +42,7 @@ async fn readSubType(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
+    typeid: i32,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
     match readgettblSubType(db_pool.inner(), query, col).await {
         Ok(data) => Ok(Json(data)),
