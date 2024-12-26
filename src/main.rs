@@ -3,6 +3,8 @@ use sqlx::{Mssql, MssqlPool};
 use serde_json::Value;
 use std::collections::HashMap;
 use rocket::tokio;
+use rocket::{launch, Rocket, Build};
+use rocket::fairing::AdHoc;
 
 // Query parameters structure
 #[derive(serde::Deserialize)]
@@ -59,7 +61,7 @@ async fn get_tbl_type_route(
 
 // Rocket application setup
 #[launch]
-fn rocket() -> _ {
+async fn rocket() -> Rocket<Build> {
     rocket::build()
         .manage(
             MssqlPool::connect("mssql://sa:pass,123@172.16.6.31/Portal_HelpDesk_CS")
