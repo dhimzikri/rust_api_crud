@@ -155,23 +155,24 @@ pub async fn readgettbl_subtype(
                         .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
                 }
 
-            let mut row_map = HashMap::new();
-            row_map.insert("subtypeid".to_string(), Value::Number(subtypeid.into()));
-            row_map.insert("subdescription".to_string(), Value::String(subdescription));
-            row_map.insert("typeid".to_string(), Value::Number(typeid.into()));
-            row_map.insert("cost_center".to_string(), Value::String(cost_center));
-            row_map.insert("estimasi".to_string(), Value::Number(estimasi));
-            row_map.insert("isactive".to_string(), Value::Bool(isactive));
-            row_map.insert("usrupd".to_string(), Value::String(usrupd));
-            row_map.insert("dtmupd".to_string(), Value::String(dtmupd));
+                let mut row_map = HashMap::new();
+                row_map.insert("subtypeid".to_string(), Value::Number(subtypeid.into()));
+                row_map.insert("subdescription".to_string(), Value::String(subdescription));
+                row_map.insert("typeid".to_string(), Value::Number(typeid.into()));
+                row_map.insert("cost_center".to_string(), Value::String(cost_center));
+                row_map.insert("estimasi".to_string(), Value::Number(estimasi));
+                row_map.insert("isactive".to_string(), Value::Bool(isactive));
+                row_map.insert("usrupd".to_string(), Value::String(usrupd));
+                row_map.insert("dtmupd".to_string(), Value::String(dtmupd));
 
-            msg.push(row_map);
+                msg.push(row_map);
+            }
+
+            result.success = true;
+            result.total = Some(rows.len() as i64);
+            result.data = Some(msg);
         }
 
-        result.success = true;
-        result.total = Some(rows.len() as i64);
-        result.data = Some(msg);
+        Ok(serde_json::to_string(&result)?)
     }
-
-    Ok(serde_json::to_string(&result)?)
 }
