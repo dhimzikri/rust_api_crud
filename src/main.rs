@@ -3,6 +3,7 @@
 use rocket::{serde::json::Json, State};
 use sqlx::MssqlPool;
 use serde_json::Value;
+use std::collections::HashMap;
 
 mod gridcase;
 use crate::gridcase::{get_tbl_type, QueryParams}; // Import from the gridCase module

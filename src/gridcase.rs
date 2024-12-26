@@ -16,9 +16,10 @@ pub async fn get_tbl_type(
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let mut base_query = String::from("SELECT * FROM tblType WHERE 1=1");
 
-    // Modify query if parameters are provided
+    // If query and column parameters are provided, modify the query
     if let Some(query_str) = query {
         if let Some(col_name) = col {
+            // Safely format the query by unwrapping Options
             base_query.push_str(&format!(" AND {} LIKE '%{}%'", col_name, query_str));
         }
     }
