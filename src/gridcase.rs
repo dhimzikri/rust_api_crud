@@ -1,4 +1,4 @@
-use sqlx::{query, query_as, MssqlPool};
+use sqlx::{query, query_as, MssqlPool, Pool};
 use sqlx::Row;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -190,7 +190,7 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-pub async fn get_case(
+pub async fn getCase(
     db_pool: &Pool<Mssql>,
     query: Option<String>,
     col: Option<String>,
@@ -235,7 +235,7 @@ pub async fn get_case(
         src, start, countlast
     );
 
-    let result = query(&sql_query)
+    let rows = sqlx::query(&sql_query)
         .fetch_all(db_pool)
         .await?;
 

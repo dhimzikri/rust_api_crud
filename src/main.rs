@@ -65,7 +65,7 @@ pub async fn grid_case(
     start: Option<i32>,
     limit: Option<i32>,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
-    match get_case(db_pool.inner(), query, col, start, limit).await {
+    match getCase(db_pool.inner(), query, col, start, limit).await {
         Ok(data) => Ok(Json(data)),
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
@@ -101,7 +101,7 @@ async fn main() -> Result<(), rocket::Error> {
     rocket::build()
         .manage(db_pool)
         // .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,getAllCase])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,grid_case])
         .launch()
         .await?;
 
