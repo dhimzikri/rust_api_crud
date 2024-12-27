@@ -189,11 +189,88 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-pub async fn get_case(
+pub async fn readgettblSubType(
     db_pool: &MssqlPool,
     query: Option<String>,
     col: Option<String>,
-    // typeid: i32, // Adding typeid as a parameter
+    typeid: i32, // Adding typeid as a parameter
+) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
+    // Start with the base query
+    let mut base_query = String::from(
+        "SELECT SubTypeID, SubDescription, TypeID, cost_center, estimasi, isactive, usrupd, 
+        CONVERT(VARCHAR, dtmupd, 120) as dtmupd 
+        FROM tblSubType 
+        WHERE isactive = 1"
+    );
+
+    // If query and column are provided, append the filtering logic
+    if let (Some(query_str), Some(col_name)) = (&query, &col) {
+        base_query.push_str(&format!(" AND {} LIKE @search_query", col_name));
+    }
+
+    // Create a query builder
+    let mut query_builder = sqlx::query(&base_query).bind(typeid); // Bind `@typeid` first
+
+    // If a search query is provided, bind it to `@search_query`
+    if let Some(query_str) = query {
+        query_builder = query_builder.bind(format!("%{}%", query_str)); // Bind the search term with wildcards
+    }
+
+    // Execute the query and fetch all rows
+    let rows = query_builder.fetch_all(db_pool).await?;
+
+    // Process the results into a vector of HashMaps
+    let mut result = Vec::new();
+
+    for row in rows {
+        let mut row_map = HashMap::new();
+
+        row_map.insert(
+            "subtypeid".to_string(),
+            Value::Number(row.try_get::<i32, _>("SubTypeID")?.into()),
+        );
+        row_map.insert(
+            "subdescription".to_string(),
+            Value::String(row.try_get::<String, _>("SubDescription")?),
+        );
+        row_map.insert(
+            "typeid".to_string(),
+            Value::Number(row.try_get::<i32, _>("TypeID")?.into()),
+        );
+        row_map.insert(
+            "cost_center".to_string(),
+            Value::String(row.try_get::<String, _>("cost_center")?),
+        );
+        row_map.insert(
+            "estimasi".to_string(),
+            Value::Number(row.try_get::<i32, _>("estimasi")?.into()), // Decode as i32
+        );
+        
+        row_map.insert(
+            "isactive".to_string(),
+            Value::Bool(row.try_get::<bool, _>("isactive")?),
+        );
+        row_map.insert(
+            "usrupd".to_string(),
+            Value::String(row.try_get::<String, _>("usrupd")?),
+        );
+        row_map.insert(
+            "dtmupd".to_string(),
+            Value::String(row.try_get::<String, _>("dtmupd")?),
+        );
+
+        result.push(row_map);
+    }
+
+    Ok(result)
+}
+
+pub async fn readgettblSubType(
+    db_pool: &MssqlPool,
+    query: Option<String>,
+    col: Option<String>,
+    typeid: i32, // Adding typeid as a parameter
+) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let mut result = HashMap::new();
     let query = request.get("query").unwrap_or(&"".to_string());
     let col = request.get("col");
@@ -209,11 +286,9 @@ pub async fn get_case(
             src = format!("{} AND {} LIKE '%{}%'", src, column, query);
         }
     }
-
-) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     // Start with the base query
     let mut base_query = String::from(
-        "SET NOCOUNT ON;
+       "SET NOCOUNT ON;
         DECLARE @jml AS INT;
         SELECT @jml = COUNT(a.ticketno)
         FROM [Case] a
@@ -251,8 +326,7 @@ pub async fn get_case(
         src, src, start, countlast
     );
     
-       // Here, exec_sql would be a function that executes the SQL and returns the results
-       if let Some(rs) = exec_sql(&sql_str) {
+    if let Some(rs) = exec_sql(&sql_str) {
         let mut msg = Vec::new();
 
         for row in rs {
