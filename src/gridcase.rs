@@ -162,8 +162,8 @@ pub async fn readgettblSubType(
         row_map.insert("cost_center".to_string(), Value::String(cost_center));
         row_map.insert("estimasi".to_string(), Value::String(estimasi));
         row_map.insert("isactive".to_string(), Value::Bool(isactive));
-        row_map.insert("usrupd".to_string(), Value::String("usrupd"));
-        row_map.insert("dtmupd".to_string(), Value::String("dtmupd"));
+        row_map.insert("usrupd".to_string(), Value::String(usrupd));
+        row_map.insert("dtmupd".to_string(), Value::String(dtmupd));
 
         result.push(row_map);
     }
