@@ -209,7 +209,6 @@ pub async fn getCase(
     }
 
     let sql_query = format!(
-        let sql = format!(
             r#"
             SET NOCOUNT ON;
             DECLARE @jml AS INT;
