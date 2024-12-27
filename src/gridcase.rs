@@ -276,7 +276,7 @@ pub async fn getCase(
         // Using try_get to retrieve values from each column and inserting them into the row_map map
         row_map.insert(
             "flagcompany".to_string(),
-            Value::String(row.try_get::<String, _>("FLAGCOMPANY")?),
+            Value::String(row.try_get::<String, _>("flagcompany")?),
         );
         result.push(row_map);
     }
