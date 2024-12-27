@@ -280,10 +280,9 @@ pub async fn getCase(
     for row in rows {
         let mut row_map = HashMap::new();
     
-        // Using try_get to retrieve values from each column and inserting them into the row_map map
         row_map.insert(
             "flagcompany".to_string(),
-            Value::String(row.try_get::<String, _>("FLAGCOMPANY")?),
+            Value::String(row.try_get::<Option<String>, _>("FLAGCOMPANY")?.unwrap_or_default()),
         );
         row_map.insert(
             "ticketno".to_string(),
@@ -295,11 +294,11 @@ pub async fn getCase(
         );
         row_map.insert(
             "branchid".to_string(),
-            Value::String(row.try_get::<String, _>("BRANCHID")?),
+            Value::String(row.try_get::<Option<String>, _>("BRANCHID")?.unwrap_or_default()),
         );
         row_map.insert(
             "customername".to_string(),
-            Value::String(row.try_get::<String, _>("CUSTOMERNAME")?),
+            Value::String(row.try_get::<Option<String>, _>("CUSTOMERNAME")?.unwrap_or_default()),
         );
         row_map.insert(
             "applicationid".to_string(),
@@ -315,15 +314,15 @@ pub async fn getCase(
         );
         row_map.insert(
             "statusdescription".to_string(),
-            Value::String(row.try_get::<String, _>("STATUSDESCRIPTION")?),
+            Value::String(row.try_get::<Option<String>, _>("STATUSDESCRIPTION")?.unwrap_or_default()),
         );
         row_map.insert(
             "subdescription".to_string(),
-            Value::String(row.try_get::<String, _>("SUBDESCRIPTION")?),
+            Value::String(row.try_get::<Option<String>, _>("SUBDESCRIPTION")?.unwrap_or_default()),
         );
         row_map.insert(
             "statusname".to_string(),
-            Value::String(row.try_get::<String, _>("STATUSNAME")?),
+            Value::String(row.try_get::<Option<String>, _>("STATUSNAME")?.unwrap_or_default()),
         );
         row_map.insert(
             "typeid".to_string(),
@@ -331,7 +330,7 @@ pub async fn getCase(
         );
         row_map.insert(
             "typedescriontion".to_string(),
-            Value::String(row.try_get::<String, _>("TYPEDESCRIONTION")?),
+            Value::String(row.try_get::<Option<String>, _>("TYPEDESCRIONTION")?.unwrap_or_default()),
         );
         row_map.insert(
             "subtypeid".to_string(),
@@ -339,7 +338,7 @@ pub async fn getCase(
         );
         row_map.insert(
             "typesubdescriontion".to_string(),
-            Value::String(row.try_get::<String, _>("TYPESUBDESCRIONTION")?),
+            Value::String(row.try_get::<Option<String>, _>("TYPESUBDESCRIONTION")?.unwrap_or_default()),
         );
         row_map.insert(
             "priorityid".to_string(),
@@ -347,39 +346,39 @@ pub async fn getCase(
         );
         row_map.insert(
             "prioritydescription".to_string(),
-            Value::String(row.try_get::<String, _>("PRIORITYDESCRIPTION")?),
+            Value::String(row.try_get::<Option<String>, _>("PRIORITYDESCRIPTION")?.unwrap_or_default()),
         );
         row_map.insert(
             "description".to_string(),
-            Value::String(row.try_get::<String, _>("DESCRIPTION")?),
+            Value::String(row.try_get::<Option<String>, _>("DESCRIPTION")?.unwrap_or_default()),
         );
         row_map.insert(
             "phoneno".to_string(),
-            Value::String(row.try_get::<String, _>("PHONENO")?),
+            Value::String(row.try_get::<Option<String>, _>("PHONENO")?.unwrap_or_default()),
         );
         row_map.insert(
             "email".to_string(),
-            Value::String(row.try_get::<String, _>("EMAIL")?),
+            Value::String(row.try_get::<Option<String>, _>("EMAIL")?.unwrap_or_default()),
         );
         row_map.insert(
             "contactid".to_string(),
-            Value::String(row.try_get::<String, _>("CONTACTID")?),
+            Value::Number(row.try_get::<Option<i32>, _>("CONTACTID")?.unwrap_or_default().into()),
         );
         row_map.insert(
             "contactdescription".to_string(),
-            Value::String(row.try_get::<String, _>("CONTACTDESCRIPTION")?),
+            Value::String(row.try_get::<Option<String>, _>("CONTACTDESCRIPTION")?.unwrap_or_default()),
         );
         row_map.insert(
             "relationid".to_string(),
-            Value::String(row.try_get::<String, _>("RELATIONID")?),
+            Value::Number(row.try_get::<Option<i32>, _>("RELATIONID")?.unwrap_or_default().into()),
         );
         row_map.insert(
             "relationdescription".to_string(),
-            Value::String(row.try_get::<String, _>("RELATIONDESCRIPTION")?),
+            Value::String(row.try_get::<Option<String>, _>("RELATIONDESCRIPTION")?.unwrap_or_default()),
         );
         row_map.insert(
             "relationname".to_string(),
-            Value::String(row.try_get::<String, _>("RELATIONNAME")?),
+            Value::String(row.try_get::<Option<String>, _>("RELATIONNAME")?.unwrap_or_default()),
         );
         row_map.insert(
             "usrupd".to_string(),
@@ -391,23 +390,23 @@ pub async fn getCase(
         );
         row_map.insert(
             "callerid".to_string(),
-            Value::String(row.try_get::<String, _>("CALLERID")?),
+            Value::String(row.try_get::<Option<String>, _>("CALLERID")?.unwrap_or_default()),
         );
         row_map.insert(
             "email_".to_string(),
-            Value::String(row.try_get::<String, _>("EMAIL_")?),
+            Value::String(row.try_get::<Option<String>, _>("EMAIL_")?.unwrap_or_default()),
         );
         row_map.insert(
             "date_cr".to_string(),
-            Value::String(row.try_get::<String, _>("DATE_CR")?),
+            Value::String(row.try_get::<Option<String>, _>("DATE_CR")?.unwrap_or_default()),
         );
         row_map.insert(
             "foragingdays".to_string(),
-            Value::Number(row.try_get::<i32, _>("FORAGINGDAYS")?.into()),
+            Value::Number(row.try_get::<Option<i32>, _>("FORAGINGDAYS")?.unwrap_or_default().into()),
         );
-
+    
         result.push(row_map);
     }
-
+    
     Ok(result)
 }
