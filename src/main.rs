@@ -10,7 +10,8 @@ use std::collections::HashMap;  // Import HashMap from std::collections
 use serde_json::Value;  // Import Value from serde_json
 
 mod gridcase;
-use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType,readgetBranchID};  // Import the updated function
+// use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType,readgetBranchID};  // Import the updated function
+use gridcase::{get_tbl_type_dynamic,get_contact};  // Import the updated function
 
 // Route to fetch tblType data
 #[get("/tblType?<query>&<col>")]
@@ -79,6 +80,7 @@ async fn main() -> Result<(), rocket::Error> {
     rocket::build()
         .manage(db_pool)
         .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact])
         .launch()
         .await?;
 
