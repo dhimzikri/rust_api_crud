@@ -39,18 +39,19 @@ async fn fetch_tbl_contact(
     }
 }
 
-// #[get("/readgettblSubType?<query>&<col>")]
-// async fn readSubType(
-//     db_pool: &State<MssqlPool>,
-//     query: Option<String>,
-//     col: Option<String>,
-//     typeid: i32,
-// ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
-//     match readgettblSubType(db_pool.inner(), query, col, typeid).await {
-//         Ok(data) => Ok(Json(data)),
-//         Err(err) => Err(format!("Failed to fetch data: {}", err)),
-//     }
-// }
+#[get("/readgettblSubType?<query>&<col>")]
+async fn readSubType(
+    db_pool: &State<MssqlPool>,
+    query: Option<String>,
+    col: Option<String>,
+    typeid: i32,
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
+    match readgettblSubType(db_pool.inner(), query, col, typeid).await {
+        Ok(data) => Ok(Json(data)),
+        Err(err) => Err(format!("Failed to fetch data: {}", err)),
+    }
+}
+
 // #[get("/getBranch?<query>&<col>")]
 // async fn readBranch(
 //     db_pool: &State<MssqlPool>,
@@ -81,7 +82,7 @@ async fn main() -> Result<(), rocket::Error> {
     rocket::build()
         .manage(db_pool)
         // .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType])
         .launch()
         .await?;
 
