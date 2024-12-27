@@ -12,7 +12,7 @@ use serde_json::Value;  // Import Value from serde_json
 
 mod gridcase;
 // use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType,readgetBranchID};  // Import the updated function
-use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType};  // Import the updated function
+use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType,getCase};  // Import the updated function
 
 // Route to fetch tblType data
 #[get("/tblType?<query>&<col>")]
@@ -56,6 +56,21 @@ async fn readSubType(
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
 }
+#[get("/getCase")]
+async fn getCase(
+    db_pool: &State<MssqlPool>,
+    query: Option<String>,
+    col: Option<String>,
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
+    // Ensure typeid is provided
+    let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
+
+    // Call the database function
+    match readgettblSubType(db_pool.inner(), query, col, typeid).await {
+        Ok(data) => Ok(Json(data)),
+        Err(err) => Err(format!("Failed to fetch data: {}", err)),
+    }
+}
 
 
 // #[get("/getBranch?<query>&<col>")]
@@ -88,7 +103,7 @@ async fn main() -> Result<(), rocket::Error> {
     rocket::build()
         .manage(db_pool)
         // .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,getCase])
         .launch()
         .await?;
 
