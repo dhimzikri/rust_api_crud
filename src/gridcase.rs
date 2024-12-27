@@ -1,4 +1,4 @@
-use sqlx::{query, query_as, MssqlPool, Pool};
+use sqlx::{query, query_as, Mssql, Pool};
 use sqlx::Row;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -240,7 +240,7 @@ pub async fn getCase(
         .await?;
 
     // Transform the result into a vector of `HashMap<String, Value>`
-    let data: Vec<HashMap<String, Value>> = result
+    let data: Vec<HashMap<String, Value>> = rows
         .into_iter()
         .map(|row| {
             let mut map = HashMap::new();
