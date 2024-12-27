@@ -126,22 +126,21 @@ pub async fn readgettblSubType(
         FROM tblSubType 
         WHERE typeid = @typeid AND isactive = 1"
     );
-
     // If query and column are provided, append the filtering logic
-    if let (Some(query_str), Some(col_name)) = (query.as_ref(), col.as_ref()) {
-        base_query.push_str(&format!(" AND {} LIKE @search", col_name));
+    if let (Some(query_str), Some(col_name)) = (&query, &col) {
+        base_query.push_str(&format!(" AND {} LIKE ?", col_name));
     }
 
-    // Create the query
-    let mut sqlx_query = sqlx::query(&base_query).bind(typeid); // Bind @typeid
+    // Perform the query with parameters to avoid syntax errors and prevent SQL injection
+    let mut query_builder = sqlx::query(&base_query).bind(typeid); // Bind typeid first
 
-    // Bind the search term if provided
+    // If a search query is provided, bind the value for the LIKE search
     if let Some(query_str) = query {
-        sqlx_query = sqlx_query.bind(format!("%{}%", query_str)); // Bind @search
+        query_builder = query_builder.bind(format!("%{}%", query_str)); // Bind the search term with % for LIKE
     }
 
     // Execute the query and fetch all rows
-    let rows = sqlx_query.fetch_all(db_pool).await?;
+    let rows = query_builder.fetch_all(db_pool).await?;
 
     // Process the results into a vector of HashMaps
     let mut result = Vec::new();
@@ -149,14 +148,38 @@ pub async fn readgettblSubType(
     for row in rows {
         let mut row_map = HashMap::new();
 
-        row_map.insert("subtypeid".to_string(), Value::Number(row.try_get("SubTypeID")?.into()));
-        row_map.insert("subdescription".to_string(), Value::String(row.try_get("SubDescription")?));
-        row_map.insert("typeid".to_string(), Value::Number(row.try_get("TypeID")?.into()));
-        row_map.insert("cost_center".to_string(), Value::String(row.try_get("cost_center")?));
-        row_map.insert("estimasi".to_string(), Value::String(row.try_get("estimasi")?));
-        row_map.insert("isactive".to_string(), Value::Bool(row.try_get("isactive")?));
-        row_map.insert("usrupd".to_string(), Value::String(row.try_get("usrupd")?));
-        row_map.insert("dtmupd".to_string(), Value::String(row.try_get("dtmupd")?));
+        row_map.insert(
+            "subtypeid".to_string(),
+            Value::Number(row.try_get::<i32, _>("SubTypeID")?.into()),
+        );
+        row_map.insert(
+            "subdescription".to_string(),
+            Value::String(row.try_get::<String, _>("SubDescription")?),
+        );
+        row_map.insert(
+            "typeid".to_string(),
+            Value::Number(row.try_get::<i32, _>("TypeID")?.into()),
+        );
+        row_map.insert(
+            "cost_center".to_string(),
+            Value::String(row.try_get::<String, _>("cost_center")?),
+        );
+        row_map.insert(
+            "estimasi".to_string(),
+            Value::String(row.try_get::<String, _>("estimasi")?),
+        );
+        row_map.insert(
+            "isactive".to_string(),
+            Value::Bool(row.try_get::<bool, _>("isactive")?),
+        );
+        row_map.insert(
+            "usrupd".to_string(),
+            Value::String(row.try_get::<String, _>("usrupd")?),
+        );
+        row_map.insert(
+            "dtmupd".to_string(),
+            Value::String(row.try_get::<String, _>("dtmupd")?),
+        );
 
         result.push(row_map);
     }
