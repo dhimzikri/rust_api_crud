@@ -38,30 +38,30 @@ async fn fetch_tbl_contact(
     }
 }
 
-#[get("/readgettblSubType?<query>&<col>")]
-async fn readSubType(
-    db_pool: &State<MssqlPool>,
-    query: Option<String>,
-    col: Option<String>,
-    typeid: i32,
-) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
-    match readgettblSubType(db_pool.inner(), query, col, typeid).await {
-        Ok(data) => Ok(Json(data)),
-        Err(err) => Err(format!("Failed to fetch data: {}", err)),
-    }
-}
-#[get("/getBranch?<query>&<col>")]
-async fn readBranch(
-    db_pool: &State<MssqlPool>,
-    query: Option<String>,
-    col: Option<String>,
-    branchid: i32,
-) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
-    match readgetBranchID(db_pool.inner(), query, col, branchid).await {
-        Ok(data) => Ok(Json(data)),
-        Err(err) => Err(format!("Failed to fetch data: {}", err)),
-    }
-}
+// #[get("/readgettblSubType?<query>&<col>")]
+// async fn readSubType(
+//     db_pool: &State<MssqlPool>,
+//     query: Option<String>,
+//     col: Option<String>,
+//     typeid: i32,
+// ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
+//     match readgettblSubType(db_pool.inner(), query, col, typeid).await {
+//         Ok(data) => Ok(Json(data)),
+//         Err(err) => Err(format!("Failed to fetch data: {}", err)),
+//     }
+// }
+// #[get("/getBranch?<query>&<col>")]
+// async fn readBranch(
+//     db_pool: &State<MssqlPool>,
+//     query: Option<String>,
+//     col: Option<String>,
+//     branchid: i32,
+// ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
+//     match readgetBranchID(db_pool.inner(), query, col, branchid).await {
+//         Ok(data) => Ok(Json(data)),
+//         Err(err) => Err(format!("Failed to fetch data: {}", err)),
+//     }
+// }
 
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
