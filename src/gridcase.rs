@@ -167,8 +167,9 @@ pub async fn readgettblSubType(
         );
         row_map.insert(
             "estimasi".to_string(),
-            Value::String(row.try_get::<String, _>("estimasi")?),
+            Value::Number(row.try_get::<i32, _>("estimasi")?.into()), // Decode as i32
         );
+        
         row_map.insert(
             "isactive".to_string(),
             Value::Bool(row.try_get::<bool, _>("isactive")?),
