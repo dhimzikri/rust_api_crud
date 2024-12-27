@@ -79,7 +79,7 @@ async fn main() -> Result<(), rocket::Error> {
     // Launch the Rocket application
     rocket::build()
         .manage(db_pool)
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
+        // .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
         .mount("/", routes![fetch_tbl_type, fetch_tbl_contact])
         .launch()
         .await?;
