@@ -58,7 +58,7 @@ async fn readSubType(
 }
 
 #[get("/getCase")]
-async fn getCase(
+async fn getAllCase(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
@@ -67,7 +67,7 @@ async fn getCase(
     // let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
 
     // Call the database function
-    match get_case(db_pool.inner(), query, col, typeid).await {
+    match getCase(db_pool.inner(), query, col, typeid).await {
         Ok(data) => Ok(Json(data)),
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
@@ -104,7 +104,7 @@ async fn main() -> Result<(), rocket::Error> {
     rocket::build()
         .manage(db_pool)
         // .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,getCase])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,getAllCase])
         .launch()
         .await?;
 
