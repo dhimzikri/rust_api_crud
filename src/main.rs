@@ -94,8 +94,8 @@ async fn main() -> Result<(), rocket::Error> {
         .expect("DATABASE_URL must be set in the environment");
 
     // Create a database connection pool
-    let db_pool = MssqlPool::connect_lazy(&database_url)
-        .expect("Failed to create database pool");
+    let pool = MssqlPool::connect(&database_url).await?;
+        // .expect("Failed to create database pool");
 
     // Launch the Rocket application
     rocket::build()
