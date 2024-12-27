@@ -124,7 +124,7 @@ pub async fn readgettblSubType(
         "SELECT SubTypeID, SubDescription, TypeID, cost_center, estimasi, isactive, usrupd, 
         CONVERT(VARCHAR, dtmupd, 120) as dtmupd 
         FROM tblSubType 
-        WHERE typeid = @typeid AND isactive = 1"
+        WHERE isactive = 1"
     );
 
     // If query and column are provided, append the filtering logic
