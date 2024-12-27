@@ -223,7 +223,7 @@ pub async fn getCase(
         INNER JOIN "status" e ON a.statusid = e.statusid
         INNER JOIN "contact" f ON a.contactid = f.contactid
         INNER JOIN "relation" g ON a.relationid = g.relationid
-        {src};
+        where {src};
 
         SELECT *
         FROM (
@@ -241,7 +241,7 @@ pub async fn getCase(
             INNER JOIN "status" e ON a.statusid = e.statusid
             INNER JOIN "contact" f ON a.contactid = f.contactid
             INNER JOIN "relation" g ON a.relationid = g.relationid
-            {src}
+            where {src}
         ) AS a
         WHERE RowNumber > {start} AND RowNumber <= {count_last}
         ORDER BY a.foragingdays DESC;
