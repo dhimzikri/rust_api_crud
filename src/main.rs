@@ -59,9 +59,9 @@ async fn readSubType(
 
 #[get("/getCase")]
 async fn getCase(
-    // db_pool: &State<MssqlPool>,
-    // query: Option<String>,
-    // col: Option<String>,
+    db_pool: &State<MssqlPool>,
+    query: Option<String>,
+    col: Option<String>,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
     // // Ensure typeid is provided
     // let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
