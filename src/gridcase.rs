@@ -197,7 +197,7 @@ pub async fn getCase(
     start: Option<i32>,
     limit: Option<i32>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
-    let user_name = "example_user"; // Replace with actual user
+    let user_name = "8023"; // Replace with actual user
     let start = start.unwrap_or(0);
     let limit = limit.unwrap_or(10);
     let countlast = start + limit;
@@ -210,16 +210,30 @@ pub async fn getCase(
 
     let sql_query = format!(
         r#"
+        SET NOCOUNT ON;
+        DECLARE @jml AS INT;
+        SELECT @jml = COUNT(a.ticketno)
+        FROM [Case] a
+        INNER JOIN tbltype b ON a.TypeID = b.TypeID
+        INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
+        INNER JOIN [Priority] d ON a.PriorityID = d.PriorityID
+        INNER JOIN [status] e ON a.statusid = e.statusid
+        INNER JOIN [contact] f ON a.contactid = f.contactid
+        INNER JOIN [relation] g ON a.relationid = g.relationid
+        WHERE {};
+
         SELECT *
         FROM (
-            SELECT
-                ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber,
-                a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid,
-                a.typeid, b.description AS typedescriontion, a.subtypeid, c.SubDescription AS typesubdescriontion,
-                a.priorityid, d.Description AS prioritydescription, a.statusid, e.statusname,
-                e.description AS statusdescription, a.customername, a.branchid, a.description,
-                a.phoneno, a.email, a.usrupd, a.dtmupd, a.date_cr, f.contactid, f.Description AS contactdescription,
-                a.relationid, g.description AS relationdescription, a.relationname, a.callerid, a.email_, a.foragingdays
+            SELECT ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber, 
+                   a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, 
+                   a.typeid, b.description AS typedescriontion, a.subtypeid, 
+                   c.SubDescription AS typesubdescriontion, a.priorityid, 
+                   d.Description AS prioritydescription, a.statusid, e.statusname, 
+                   e.description AS statusdescription, a.customername, a.branchid, a.description, 
+                   a.phoneno, a.email, a.usrupd, a.dtmupd, a.date_cr, @jml AS jml, 
+                   f.contactid, f.Description AS contactdescription, a.relationid, 
+                   g.description AS relationdescription, a.relationname, a.callerid, 
+                   a.email_, a.foragingdays
             FROM [Case] a
             INNER JOIN tbltype b ON a.TypeID = b.TypeID
             INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
@@ -229,7 +243,7 @@ pub async fn getCase(
             INNER JOIN [relation] g ON a.relationid = g.relationid
             WHERE {}
         ) AS a
-        WHERE RowNumber > {} AND RowNumber <= {}
+        WHERE RowNumber > {} AND RowNumber <= {} 
         ORDER BY a.foragingdays DESC;
         "#,
         src, start, countlast
@@ -375,8 +389,4 @@ pub async fn getCase(
     }
     
     Ok(result)
-    // result.insert("total", rows.len());
-    // result.insert("success", true);
-    // result.insert("data", result);
-    
 }
