@@ -191,77 +191,57 @@ pub async fn readgettblSubType(
 }
 
 pub async fn getCase(
-    db_pool: &MssqlPool,
+    db_pool: &Pool<Mssql>,
     query: Option<String>,
     col: Option<String>,
     start: Option<i32>,
     limit: Option<i32>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
-    let user_name = "8023"; // Replace with actual user name
+    let user_name = "example_user"; // Replace with actual user
     let start = start.unwrap_or(0);
     let limit = limit.unwrap_or(10);
-    let count_last = start + limit;
+    let countlast = start + limit;
 
-    // Base query condition
     let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
 
-    // Apply the query filter if present
-    if let (Some(query), Some(col)) = (query, col) {
+    if let (Some(query), Some(col)) = (query.clone(), col.clone()) {
         src = format!("{} AND {} LIKE '%{}%'", src, col, query);
     }
 
-    // SQL query
     let sql_query = format!(
         r#"
-        SET NOCOUNT ON;
-        DECLARE @jml AS INT;
-
-        -- Count total records
-        SELECT @jml = COUNT(a.ticketno)
-        FROM "Case" a
-        INNER JOIN tbltype b ON a.TypeID = b.TypeID
-        INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-        INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
-        INNER JOIN "status" e ON a.statusid = e.statusid
-        INNER JOIN "contact" f ON a.contactid = f.contactid
-        INNER JOIN "relation" g ON a.relationid = g.relationid
-        WHERE {src};
-
-        -- Select paginated records
         SELECT *
         FROM (
             SELECT
-                ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
-                a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, a.typeid, b.description AS typedescriontion,
-                a.subtypeid, c.SubDescription AS typesubdescriontion, a.priorityid, d.Description AS prioritydescription, a.statusid,
-                e.statusname, e.description AS statusdescription, a.customername, a.branchid, a.description, a.phoneno, a.email,
-                a.usrupd, a.dtmupd, a.date_cr, @jml AS jml, f.contactid, f.Description AS contactdescription, a.relationid,
-                g.description AS relationdescription, a.relationname, a.callerid, a.email_, a.foragingdays
-            FROM "Case" a
+                ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber,
+                a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid,
+                a.typeid, b.description AS typedescriontion, a.subtypeid, c.SubDescription AS typesubdescriontion,
+                a.priorityid, d.Description AS prioritydescription, a.statusid, e.statusname,
+                e.description AS statusdescription, a.customername, a.branchid, a.description,
+                a.phoneno, a.email, a.usrupd, a.dtmupd, a.date_cr, f.contactid, f.Description AS contactdescription,
+                a.relationid, g.description AS relationdescription, a.relationname, a.callerid, a.email_, a.foragingdays
+            FROM [Case] a
             INNER JOIN tbltype b ON a.TypeID = b.TypeID
             INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-            INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
-            INNER JOIN "status" e ON a.statusid = e.statusid
-            INNER JOIN "contact" f ON a.contactid = f.contactid
-            INNER JOIN "relation" g ON a.relationid = g.relationid
-            WHERE {src}
+            INNER JOIN [Priority] d ON a.PriorityID = d.PriorityID
+            INNER JOIN [status] e ON a.statusid = e.statusid
+            INNER JOIN [contact] f ON a.contactid = f.contactid
+            INNER JOIN [relation] g ON a.relationid = g.relationid
+            WHERE {}
         ) AS a
-        WHERE RowNumber > {start} AND RowNumber <= {count_last}
+        WHERE RowNumber > {} AND RowNumber <= {}
         ORDER BY a.foragingdays DESC;
         "#,
-        src = src,
-        start = start,
-        count_last = count_last
+        src, start, countlast
     );
 
-    // Execute the SQL query
     let rows = sqlx::query(&sql_query)
         .fetch_all(db_pool)
         .await?;
-
+    
     let mut result = Vec::new();
 
-    // Process each row into a HashMap
+    // Transform the result into a vector of `HashMap<String, Value>`
     for row in rows {
         let mut row_map = HashMap::new();
     
@@ -395,4 +375,8 @@ pub async fn getCase(
     }
     
     Ok(result)
+    // result.insert("total", rows.len());
+    // result.insert("success", true);
+    // result.insert("data", result);
+    
 }
