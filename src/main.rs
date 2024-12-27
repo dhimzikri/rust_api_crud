@@ -95,7 +95,7 @@ async fn main() -> Result<(), rocket::Error> {
 
     // Create a database connection pool
     let db_pool = MssqlPool::connect(&database_url).await?;
-        .expect("Failed to create database pool");
+        // .expect("Failed to create database pool");
 
     // Launch the Rocket application
     rocket::build()
