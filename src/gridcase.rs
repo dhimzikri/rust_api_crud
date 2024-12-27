@@ -238,6 +238,8 @@ pub async fn getCase(
     let rows = sqlx::query(&sql_query)
         .fetch_all(db_pool)
         .await?;
+    
+    let mut result = Vec::new();
 
     // Transform the result into a vector of `HashMap<String, Value>`
     for row in rows {
@@ -369,11 +371,12 @@ pub async fn getCase(
             Value::Number(row.try_get::<i32, _>("FORAGINGDAYS")?.into()),
         );
     
-        msg.push(row_map);
+        result.push(row_map);
     }
     
-    result.insert("total", rs.len());
-    result.insert("success", true);
-    result.insert("data", msg);
+    Ok(result)
+    // result.insert("total", rows.len());
+    // result.insert("success", true);
+    // result.insert("data", result);
     
 }
