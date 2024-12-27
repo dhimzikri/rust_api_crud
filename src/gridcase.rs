@@ -197,7 +197,7 @@ pub async fn getCase(
     start: Option<i32>,
     limit: Option<i32>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
-    let user_name = "example_user"; // Replace with actual user
+    let user_name = "8023"; // Replace with actual user
     let start = start.unwrap_or(0);
     let limit = limit.unwrap_or(10);
     let countlast = start + limit;
