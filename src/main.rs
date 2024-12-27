@@ -12,7 +12,7 @@ use serde_json::Value;  // Import Value from serde_json
 
 mod gridcase;
 // use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType,readgetBranchID};  // Import the updated function
-use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType,getCase};  // Import the updated function
+use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType,get_case};  // Import the updated function
 
 // Route to fetch tblType data
 #[get("/tblType?<query>&<col>")]
@@ -56,8 +56,8 @@ async fn readSubType(
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
 }
-#[get("/getCase")]
-async fn getCase(
+#[get("/get_case")]
+async fn get_case(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
@@ -103,7 +103,7 @@ async fn main() -> Result<(), rocket::Error> {
     rocket::build()
         .manage(db_pool)
         // .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,getCase])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,get_case])
         .launch()
         .await?;
 

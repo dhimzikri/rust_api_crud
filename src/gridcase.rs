@@ -189,115 +189,162 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-pub async fn getCase(
-    db_pool: &MssqlPool,
-    // query: Option<String>,
-    // col: Option<String>,
-    // typeid: i32, // Adding typeid as a parameter
-    let mut result = HashMap::new();
-    let query = request.get("query").unwrap_or(&"".to_string());
-    let col = request.get("col");
+#[derive(Deserialize)]
+struct RequestData {
+    query: Option<String>,
+    col: Option<String>,
+    start: Option<i32>,
+    limit: Option<i32>,
+}
 
-    let start: usize = request.get("start").and_then(|s| s.parse().ok()).unwrap_or(0);
-    let limit: usize = request.get("limit").and_then(|s| s.parse().ok()).unwrap_or(0);
+#[derive(Serialize)]
+struct Case {
+    flagcompany: String,
+    ticketno: String,
+    agreementno: String,
+    branchid: String,
+    customername: String,
+    applicationid: String,
+    customerid: String,
+    statusid: i32,
+    statusdescription: String,
+    subdescription: String,
+    statusname: String,
+    typeid: i32,
+    typedescriontion: String,
+    subtypeid: i32,
+    typesubdescriontion: String,
+    priorityid: i32,
+    prioritydescription: String,
+    description: String,
+    phoneno: String,
+    email: String,
+    contactid: i32,
+    contactdescription: String,
+    relationid: i32,
+    relationdescription: String,
+    relationname: String,
+    usrupd: String,
+    dtmupd: String,
+    callerid: String,
+    email_: String,
+    date_cr: String,
+    foragingdays: i32,
+}
+
+#[derive(Serialize)]
+struct ResponseData {
+    total: i32,
+    success: bool,
+    data: Vec<Case>,
+}
+
+pub async fn get_case(
+    req_data: web::Query<RequestData>,
+    pool: web::Data<sqlx::PgPool>,
+) -> impl Responder {
+    let user_name = "some_user_name"; // Replace with session logic
+
+    let start = req_data.start.unwrap_or(0);
+    let limit = req_data.limit.unwrap_or(20);
     let countlast = start + limit;
 
-    let mut src = format!("0=0 AND a.statusid<>1 AND a.usrupd='{}'", user_name);
+    let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
 
-    if !query.is_empty() {
-        if let Some(column) = col {
-            src = format!("{} AND {} LIKE '%{}%'", src, column, query);
+    if let Some(query) = &req_data.query {
+        if let Some(col) = &req_data.col {
+            src = format!("{} AND {} LIKE '%{}%'", src, col, query);
         }
     }
 
-) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
-    // Start with the base query
-    let mut base_query = String::from(
-        "SET NOCOUNT ON;
-        DECLARE @jml AS INT;
-        SELECT @jml = COUNT(a.ticketno)
-        FROM [Case] a
-        INNER JOIN tbltype b ON a.TypeID = b.TypeID
-        INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-        INNER JOIN [Priority] d ON a.PriorityID = d.PriorityID
-        INNER JOIN [status] e ON a.statusid = e.statusid
-        INNER JOIN [contact] f ON a.contactid = f.contactid
-        INNER JOIN [relation] g ON a.relationid = g.relationid
-        WHERE {};
-
-        SELECT *
-        FROM (
-            SELECT ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber, 
-                   a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, 
-                   a.typeid, b.description AS typedescriontion, a.subtypeid, 
-                   c.SubDescription AS typesubdescriontion, a.priorityid, 
-                   d.Description AS prioritydescription, a.statusid, e.statusname, 
-                   e.description AS statusdescription, a.customername, a.branchid, a.description, 
-                   a.phoneno, a.email, a.usrupd, a.dtmupd, a.date_cr, @jml AS jml, 
-                   f.contactid, f.Description AS contactdescription, a.relationid, 
-                   g.description AS relationdescription, a.relationname, a.callerid, 
-                   a.email_, a.foragingdays
-            FROM [Case] a
-            INNER JOIN tbltype b ON a.TypeID = b.TypeID
-            INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-            INNER JOIN [Priority] d ON a.PriorityID = d.PriorityID
-            INNER JOIN [status] e ON a.statusid = e.statusid
-            INNER JOIN [contact] f ON a.contactid = f.contactid
-            INNER JOIN [relation] g ON a.relationid = g.relationid
-            WHERE {}
-        ) AS a
-        WHERE RowNumber > {} AND RowNumber <= {} 
-        ORDER BY a.foragingdays DESC;",
+    let sql_str = format!(
+        "SET NOCOUNT ON; \
+        DECLARE @jml AS INT; \
+        SELECT @jml = COUNT(a.ticketno) \
+        FROM [Case] a \
+        INNER JOIN tbltype b ON a.TypeID = b.TypeID \
+        INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID \
+        INNER JOIN [Priority] d ON a.PriorityID = d.PriorityID \
+        INNER JOIN [status] e ON a.statusid = e.statusid \
+        INNER JOIN [contact] f ON a.contactid = f.contactid \
+        INNER JOIN [relation] g ON a.relationid = g.relationid \
+        WHERE {}; \
+        SELECT * \
+        FROM (\
+            SELECT ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber, \
+                a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, \
+                a.typeid, b.description AS typedescriontion, a.subtypeid, \
+                c.SubDescription AS typesubdescriontion, a.priorityid, \
+                d.Description AS prioritydescription, a.statusid, e.statusname, \
+                e.description AS statusdescription, a.customername, a.branchid, \
+                a.description, a.phoneno, a.email, a.usrupd, a.dtmupd, a.date_cr, \
+                @jml AS jml, f.contactid, f.Description AS contactdescription, \
+                a.relationid, g.description AS relationdescription, a.relationname, \
+                a.callerid, a.email_, a.foragingdays \
+            FROM [Case] a \
+            INNER JOIN tbltype b ON a.TypeID = b.TypeID \
+            INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID \
+            INNER JOIN [Priority] d ON a.PriorityID = d.PriorityID \
+            INNER JOIN [status] e ON a.statusid = e.statusid \
+            INNER JOIN [contact] f ON a.contactid = f.contactid \
+            INNER JOIN [relation] g ON a.relationid = g.relationid \
+            WHERE {}\
+        ) AS a \
+        WHERE RowNumber > {} AND RowNumber <= {} ORDER BY a.foragingdays DESC;",
         src, src, start, countlast
     );
-    
-       // Here, exec_sql would be a function that executes the SQL and returns the results
-       if let Some(rs) = exec_sql(&sql_str) {
-        let mut msg = Vec::new();
 
-        for row in rs {
-            let mut case_data = HashMap::new();
-            case_data.insert("flagcompany", row.get("FLAGCOMPANY"));
-            case_data.insert("ticketno", row.get("TICKETNO"));
-            case_data.insert("agreementno", row.get("AGREEMENTNO"));
-            case_data.insert("branchid", row.get("BRANCHID"));
-            case_data.insert("customername", row.get("CUSTOMERNAME"));
-            case_data.insert("applicationid", row.get("APPLICATIONID"));
-            case_data.insert("customerid", row.get("CUSTOMERID"));
-            case_data.insert("statusid", row.get("STATUSID"));
-            case_data.insert("statusdescription", row.get("STATUSDESCRIPTION"));
-            case_data.insert("subdescription", row.get("SUBDESCRIPTION"));
-            case_data.insert("statusname", row.get("STATUSNAME"));
-            case_data.insert("typeid", row.get("TYPEID"));
-            case_data.insert("typedescriontion", row.get("TYPEDESCRIONTION"));
-            case_data.insert("subtypeid", row.get("SUBTYPEID"));
-            case_data.insert("typesubdescriontion", row.get("TYPESUBDESCRIONTION"));
-            case_data.insert("priorityid", row.get("PRIORITYID"));
-            case_data.insert("prioritydescription", row.get("PRIORITYDESCRIPTION"));
-            case_data.insert("description", row.get("DESCRIPTION"));
-            case_data.insert("phoneno", row.get("PHONENO"));
-            case_data.insert("email", row.get("EMAIL"));
-            case_data.insert("contactid", row.get("CONTACTID"));
-            case_data.insert("contactdescription", row.get("CONTACTDESCRIPTION"));
-            case_data.insert("relationid", row.get("RELATIONID"));
-            case_data.insert("relationdescription", row.get("RELATIONDESCRIPTION"));
-            case_data.insert("relationname", row.get("RELATIONNAME"));
-            case_data.insert("usrupd", row.get("USRUPD"));
-            case_data.insert("dtmupd", row.get("DTMUPD"));
-            case_data.insert("callerid", row.get("CALLERID"));
-            case_data.insert("email_", row.get("EMAIL_"));
-            case_data.insert("date_cr", row.get("DATE_CR"));
-            case_data.insert("foragingdays", row.get("FORAGINGDAYS"));
+    let mut msg: Vec<Case> = Vec::new();
+    let mut total = 0;
 
-            msg.push(case_data);
+    match sqlx::query(&sql_str).fetch_all(&**pool).await {
+        Ok(rows) => {
+            for row in rows {
+                msg.push(Case {
+                    flagcompany: row.get("flagcompany"),
+                    ticketno: row.get("ticketno"),
+                    agreementno: row.get("agreementno"),
+                    branchid: row.get("branchid"),
+                    customername: row.get("customername"),
+                    applicationid: row.get("applicationid"),
+                    customerid: row.get("customerid"),
+                    statusid: row.get("statusid"),
+                    statusdescription: row.get("statusdescription"),
+                    subdescription: row.get("subdescription"),
+                    statusname: row.get("statusname"),
+                    typeid: row.get("typeid"),
+                    typedescriontion: row.get("typedescriontion"),
+                    subtypeid: row.get("subtypeid"),
+                    typesubdescriontion: row.get("typesubdescriontion"),
+                    priorityid: row.get("priorityid"),
+                    prioritydescription: row.get("prioritydescription"),
+                    description: row.get("description"),
+                    phoneno: row.get("phoneno"),
+                    email: row.get("email"),
+                    contactid: row.get("contactid"),
+                    contactdescription: row.get("contactdescription"),
+                    relationid: row.get("relationid"),
+                    relationdescription: row.get("relationdescription"),
+                    relationname: row.get("relationname"),
+                    usrupd: row.get("usrupd"),
+                    dtmupd: row.get("dtmupd"),
+                    callerid: row.get("callerid"),
+                    email_: row.get("email_"),
+                    date_cr: row.get("date_cr"),
+                    foragingdays: row.get("foragingdays"),
+                });
+                total = row.get("jml");
+            }
+
+            HttpResponse::Ok().json(ResponseData {
+                total,
+                success: true,
+                data: msg,
+            })
         }
-
-        result.insert("total", rs.len());
-        result.insert("success", true);
-        result.insert("data", msg);
-    } else {
-        result.insert("success", false);
+        Err(err) => {
+            eprintln!("Error executing query: {:?}", err);
+            HttpResponse::InternalServerError().json(json!({ "success": false }))
+        }
     }
-
-    serde_json::to_string(&result).unwrap()
 }
