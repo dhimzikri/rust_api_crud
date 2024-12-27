@@ -213,7 +213,7 @@ pub async fn getCase(
 
     // SQL query
     let sql_query = format!(
-        r#" select top(100)* from Case;
+        r#"SELECT TOP (10) * FROM [Portal_HelpDesk_CS].[dbo].[Case];
         "#,
         // src = src,
         // start = start,
