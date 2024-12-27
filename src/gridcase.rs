@@ -5,6 +5,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use chrono::NaiveDateTime;
 use rocket::serde::{json::Json, Deserialize, Serialize};
+use sqlx::error::DatabaseError;
 
 pub async fn get_tbl_type_dynamic(
     db_pool: &MssqlPool,
