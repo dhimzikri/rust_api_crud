@@ -275,8 +275,9 @@ pub async fn getCase(
         .fetch_all(db_pool)
         .await
         .map_err(|e| {
-            // Box the error before returning it
-            Box::new(e) as Box<dyn DatabaseError>
+            // Log the error here and return it gracefully
+            eprintln!("Error executing query: {}", e);
+            sqlx::Error::Database(e)
         })?;
 
     let mut result = Vec::new();
