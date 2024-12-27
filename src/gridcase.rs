@@ -156,14 +156,14 @@ pub async fn readgettblSubType(
         };
 
         // Insert the values into the HashMap
-        row_map.insert("subtypeid".to_string(), Value::Number(row.try_get("SubTypeID")?.into()));
-        row_map.insert("subdescription".to_string(), Value::String(row.try_get("SubDescription")?));
-        row_map.insert("typeid".to_string(), Value::Number(row.try_get("TypeID")?.into()));
-        row_map.insert("cost_center".to_string(), Value::String(row.try_get("cost_center")?));
-        row_map.insert("estimasi".to_string(), Value::String(row.try_get("estimasi")?));
-        row_map.insert("isactive".to_string(), Value::Bool(row.try_get("isactive")?));
-        row_map.insert("usrupd".to_string(), Value::String(row.try_get("usrupd")?));
-        row_map.insert("dtmupd".to_string(), Value::String(row.try_get("dtmupd")?));
+        row_map.insert("subtypeid".to_string(), Value::Number(subtypeid.into()));
+        row_map.insert("subdescription".to_string(), Value::String(SubDescription));
+        row_map.insert("typeid".to_string(), Value::Number(TypeID.into()));
+        row_map.insert("cost_center".to_string(), Value::String(cost_center));
+        row_map.insert("estimasi".to_string(), Value::String(estimasi));
+        row_map.insert("isactive".to_string(), Value::Bool(isactive));
+        row_map.insert("usrupd".to_string(), Value::String("usrupd"));
+        row_map.insert("dtmupd".to_string(), Value::String("dtmupd"));
 
         result.push(row_map);
     }
