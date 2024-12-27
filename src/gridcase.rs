@@ -245,7 +245,6 @@ pub async fn getCase(
             ORDER BY a.foragingdays DESC;
             "#,
         src = src,
-        src = src,
         start = start, 
         countlast = countlast
     );
