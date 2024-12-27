@@ -2,6 +2,8 @@ use sqlx::{query, query_as ,Mssql, Pool};
 use sqlx::Row;
 use sqlx::mssql::MssqlPool;
 use sqlx::error::DatabaseError;
+use sqlx::{Error as SqlxError, DatabaseError};
+use std::error::Error as StdError;
 use serde_json::Value;
 use std::collections::HashMap;
 use chrono::NaiveDateTime;
@@ -275,10 +277,11 @@ pub async fn getCase(
         .fetch_all(db_pool)
         .await
         .map_err(|e| {
-            // Box the error before returning it
-            Box::new(e) as Box<dyn std::error::Error>
+            match e {
+                SqlxError::Database(db_err) => Box::new(db_err) as Box<dyn DatabaseError>,
+                _ => Box::new(e) as Box<dyn StdError>,
+            }
         })?;
-
 
     let mut result = Vec::new();
 
