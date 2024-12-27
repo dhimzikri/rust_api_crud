@@ -199,9 +199,9 @@ pub async fn getCase(
     limit: Option<i32>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let user_name = "8023"; // Replace with actual user name
-    let start = start.unwrap_or(0);
-    let limit = limit.unwrap_or(10);
-    let count_last = start + limit;
+    // let start = start.unwrap_or(0);
+    // let limit = limit.unwrap_or(10);
+    // let count_last = start + limit;
 
     // Base query condition
     let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
@@ -213,47 +213,54 @@ pub async fn getCase(
 
     // SQL query
     let sql_query = format!(
-        r#"
-        SET NOCOUNT ON;
-        DECLARE @jml AS INT;
-
-        -- Count total records
-        SELECT @jml = COUNT(a.ticketno)
-        FROM "Case" a
-        INNER JOIN tbltype b ON a.TypeID = b.TypeID
-        INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-        INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
-        INNER JOIN "status" e ON a.statusid = e.statusid
-        INNER JOIN "contact" f ON a.contactid = f.contactid
-        INNER JOIN "relation" g ON a.relationid = g.relationid
-        WHERE {src};
-
-        -- Select paginated records
-        SELECT *
-        FROM (
-            SELECT
-                ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
-                a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, a.typeid, b.description AS typedescriontion,
-                a.subtypeid, c.SubDescription AS typesubdescriontion, a.priorityid, d.Description AS prioritydescription, a.statusid,
-                e.statusname, e.description AS statusdescription, a.customername, a.branchid, a.description, a.phoneno, a.email,
-                a.usrupd, a.dtmupd, a.date_cr, @jml AS jml, f.contactid, f.Description AS contactdescription, a.relationid,
-                g.description AS relationdescription, a.relationname, a.callerid, a.email_, a.foragingdays
-            FROM "Case" a
-            INNER JOIN tbltype b ON a.TypeID = b.TypeID
-            INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-            INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
-            INNER JOIN "status" e ON a.statusid = e.statusid
-            INNER JOIN "contact" f ON a.contactid = f.contactid
-            INNER JOIN "relation" g ON a.relationid = g.relationid
-            WHERE {src}
-        ) AS a
-        WHERE RowNumber > {start} AND RowNumber <= {count_last}
-        ORDER BY a.foragingdays DESC;
+        r#" select top(100)* from Case;
         "#,
-        src = src,
-        start = start,
-        count_last = count_last
+        // src = src,
+        // start = start,
+        // count_last = count_last
     );
+    // let sql_query = format!(
+    //     r#"
+    //     SET NOCOUNT ON;
+    //     DECLARE @jml AS INT;
+
+    //     -- Count total records
+    //     SELECT @jml = COUNT(a.ticketno)
+    //     FROM "Case" a
+    //     INNER JOIN tbltype b ON a.TypeID = b.TypeID
+    //     INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
+    //     INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
+    //     INNER JOIN "status" e ON a.statusid = e.statusid
+    //     INNER JOIN "contact" f ON a.contactid = f.contactid
+    //     INNER JOIN "relation" g ON a.relationid = g.relationid
+    //     WHERE {src};
+
+    //     -- Select paginated records
+    //     SELECT *
+    //     FROM (
+    //         SELECT
+    //             ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
+    //             a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, a.typeid, b.description AS typedescriontion,
+    //             a.subtypeid, c.SubDescription AS typesubdescriontion, a.priorityid, d.Description AS prioritydescription, a.statusid,
+    //             e.statusname, e.description AS statusdescription, a.customername, a.branchid, a.description, a.phoneno, a.email,
+    //             a.usrupd, a.dtmupd, a.date_cr, @jml AS jml, f.contactid, f.Description AS contactdescription, a.relationid,
+    //             g.description AS relationdescription, a.relationname, a.callerid, a.email_, a.foragingdays
+    //         FROM "Case" a
+    //         INNER JOIN tbltype b ON a.TypeID = b.TypeID
+    //         INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
+    //         INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
+    //         INNER JOIN "status" e ON a.statusid = e.statusid
+    //         INNER JOIN "contact" f ON a.contactid = f.contactid
+    //         INNER JOIN "relation" g ON a.relationid = g.relationid
+    //         WHERE {src}
+    //     ) AS a
+    //     WHERE RowNumber > {start} AND RowNumber <= {count_last}
+    //     ORDER BY a.foragingdays DESC;
+    //     "#,
+    //     src = src,
+    //     start = start,
+    //     count_last = count_last
+    // );
 
     // Execute the SQL query
     let rows = sqlx::query(&sql_query)
