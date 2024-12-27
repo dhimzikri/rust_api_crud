@@ -112,6 +112,7 @@ pub async fn get_contact(
 
     Ok(result)
 }
+
 pub async fn readgettblSubType(
     db_pool: &MssqlPool,
     query: Option<String>,
@@ -125,20 +126,20 @@ pub async fn readgettblSubType(
     );
 
     // If query and column are provided, append the filtering logic
-    if let (Some(query_str), Some(col_name)) = (query, col) {
+    if let (Some(query_str), Some(col_name)) = (&query, &col) {
         base_query.push_str(&format!(" AND {} LIKE ?", col_name));
     }
 
     // Perform the query with parameters to avoid syntax errors and prevent SQL injection
-    let mut query = sqlx::query(&base_query).bind(typeid); // Bind typeid first
+    let mut query_builder = sqlx::query(&base_query).bind(typeid); // Bind typeid first
 
     // If a search query is provided, bind the value for the LIKE search
     if let Some(query_str) = query {
-        query = query.bind(format!("%{}%", query_str)); // Bind the search term with % for LIKE
+        query_builder = query_builder.bind(format!("%{}%", query_str)); // Bind the search term with % for LIKE
     }
 
     // Execute the query and fetch all rows
-    let rows = query.fetch_all(db_pool).await?;
+    let rows = query_builder.fetch_all(db_pool).await?;
 
     // Process the results into a vector of HashMaps
     let mut result = Vec::new();
