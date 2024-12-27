@@ -190,7 +190,7 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-pub async fn get_case(
+pub async fn getCase(
     db_pool: &Pool<Mssql>,
     query: Option<String>,
     col: Option<String>,
