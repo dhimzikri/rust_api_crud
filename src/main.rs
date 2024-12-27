@@ -39,6 +39,7 @@ async fn fetch_tbl_contact(
     }
 }
 
+// checkpoint2-final
 #[get("/readgettblSubType?<query>&<col>&<typeid>")]
 async fn readSubType(
     db_pool: &State<MssqlPool>,
