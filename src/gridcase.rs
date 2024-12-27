@@ -212,7 +212,7 @@ pub async fn getCase(
     }
 
     // SQL query
-    let sql_query = format!(
+    let mut sql_query = String::from(
         r#"
         SET NOCOUNT ON;
         DECLARE @jml AS INT;
