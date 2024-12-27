@@ -1,8 +1,10 @@
 use sqlx::{query, MssqlPool};
+use sqlx::{query, query_as, Pool, Mssql};
 use sqlx::Row;
 use serde_json::Value;
 use std::collections::HashMap;
 use chrono::NaiveDateTime;
+use rocket::serde::{json::Json, Deserialize, Serialize};
 
 pub async fn get_tbl_type_dynamic(
     db_pool: &MssqlPool,
@@ -189,26 +191,80 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-pub fn getCase(request: HashMap<String, String>, user_name: &str) -> String {
-    let mut result = HashMap::new();
-    let query = request.get("query").unwrap_or(&"".to_string());
-    let col = request.get("col");
+#[derive(Deserialize)]
+pub struct QueryParams {
+    query: Option<String>,
+    col: Option<String>,
+    start: Option<i32>,
+    limit: Option<i32>,
+}
 
-    let start: usize = request.get("start").and_then(|s| s.parse().ok()).unwrap_or(0);
-    let limit: usize = request.get("limit").and_then(|s| s.parse().ok()).unwrap_or(0);
-    let countlast = start + limit;
+#[derive(Serialize)]
+pub struct CaseData {
+    flagcompany: String,
+    ticketno: String,
+    agreementno: String,
+    branchid: String,
+    customername: String,
+    applicationid: String,
+    customerid: String,
+    statusid: i32,
+    statusdescription: String,
+    subdescription: String,
+    statusname: String,
+    typeid: i32,
+    typedescriontion: String,
+    subtypeid: i32,
+    typesubdescriontion: String,
+    priorityid: i32,
+    prioritydescription: String,
+    description: String,
+    phoneno: String,
+    email: String,
+    contactid: i32,
+    contactdescription: String,
+    relationid: i32,
+    relationdescription: String,
+    relationname: String,
+    usrupd: String,
+    dtmupd: String,
+    callerid: String,
+    email_: String,
+    date_cr: String,
+    foragingdays: i32,
+}
+
+#[derive(Serialize)]
+pub struct ResponseData {
+    success: bool,
+    total: Option<i32>,
+    data: Option<Vec<CaseData>>,
+}
+
+pub async fn getCase(
+    pool: &Pool<Mssql>,
+    query_params: QueryParams,
+    user_name: String,
+) -> Result<ResponseData, sqlx::Error> {
+    let QueryParams { query, col, start, limit } = query_params;
+
+    let start = start.unwrap_or(0);
+    let limit = limit.unwrap_or(50);
+    let count_last = start + limit;
 
     let mut src = format!("0=0 AND a.statusid<>1 AND a.usrupd='{}'", user_name);
 
-    if !query.is_empty() {
-        if let Some(column) = col {
-            src = format!("{} AND {} LIKE '%{}%'", src, column, query);
+    if let Some(q) = query {
+        if let Some(c) = col {
+            src.push_str(&format!(" AND {} LIKE '%{}%'", c, q));
         }
     }
 
-    let sql_str = format!(
-        "SET NOCOUNT ON;
+    let sql = format!(
+        r#"
+        SET NOCOUNT ON;
         DECLARE @jml AS INT;
+        
         SELECT @jml = COUNT(a.ticketno)
         FROM [Case] a
         INNER JOIN tbltype b ON a.TypeID = b.TypeID
@@ -217,20 +273,18 @@ pub fn getCase(request: HashMap<String, String>, user_name: &str) -> String {
         INNER JOIN [status] e ON a.statusid = e.statusid
         INNER JOIN [contact] f ON a.contactid = f.contactid
         INNER JOIN [relation] g ON a.relationid = g.relationid
-        WHERE {};
+        WHERE {src};
 
         SELECT *
         FROM (
-            SELECT ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber, 
-                   a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, 
-                   a.typeid, b.description AS typedescriontion, a.subtypeid, 
-                   c.SubDescription AS typesubdescriontion, a.priorityid, 
-                   d.Description AS prioritydescription, a.statusid, e.statusname, 
-                   e.description AS statusdescription, a.customername, a.branchid, a.description, 
-                   a.phoneno, a.email, a.usrupd, a.dtmupd, a.date_cr, @jml AS jml, 
-                   f.contactid, f.Description AS contactdescription, a.relationid, 
-                   g.description AS relationdescription, a.relationname, a.callerid, 
-                   a.email_, a.foragingdays
+            SELECT ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber,
+                a.flagcompany, a.ticketno, a.agreementno, a.branchid, a.customername,
+                a.applicationid, a.customerid, a.statusid, e.description AS statusdescription,
+                c.SubDescription AS subdescription, e.statusname, a.typeid, b.description AS typedescriontion,
+                a.subtypeid, c.SubDescription AS typesubdescriontion, a.priorityid, d.Description AS prioritydescription,
+                a.description, a.phoneno, a.email, f.contactid, f.Description AS contactdescription,
+                g.description AS relationdescription, g.relationid, a.relationname, a.usrupd,
+                a.dtmupd, a.callerid, a.email_, a.date_cr, a.foragingdays
             FROM [Case] a
             INNER JOIN tbltype b ON a.TypeID = b.TypeID
             INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
@@ -238,60 +292,18 @@ pub fn getCase(request: HashMap<String, String>, user_name: &str) -> String {
             INNER JOIN [status] e ON a.statusid = e.statusid
             INNER JOIN [contact] f ON a.contactid = f.contactid
             INNER JOIN [relation] g ON a.relationid = g.relationid
-            WHERE {}
-        ) AS a
-        WHERE RowNumber > {} AND RowNumber <= {} 
-        ORDER BY a.foragingdays DESC;",
-        src, src, start, countlast
+            WHERE {src}
+        ) AS data
+        WHERE RowNumber > {start} AND RowNumber <= {count_last}
+        ORDER BY data.foragingdays DESC;
+        "#
     );
 
-    // Here, exec_sql would be a function that executes the SQL and returns the results
-    if let Some(rs) = exec_sql(&sql_str) {
-        let mut msg = Vec::new();
+    let rows = query_as::<_, CaseData>(&sql).fetch_all(pool).await?;
 
-        for row in rs {
-            let mut case_data = HashMap::new();
-            case_data.insert("flagcompany", row.get("FLAGCOMPANY"));
-            case_data.insert("ticketno", row.get("TICKETNO"));
-            case_data.insert("agreementno", row.get("AGREEMENTNO"));
-            case_data.insert("branchid", row.get("BRANCHID"));
-            case_data.insert("customername", row.get("CUSTOMERNAME"));
-            case_data.insert("applicationid", row.get("APPLICATIONID"));
-            case_data.insert("customerid", row.get("CUSTOMERID"));
-            case_data.insert("statusid", row.get("STATUSID"));
-            case_data.insert("statusdescription", row.get("STATUSDESCRIPTION"));
-            case_data.insert("subdescription", row.get("SUBDESCRIPTION"));
-            case_data.insert("statusname", row.get("STATUSNAME"));
-            case_data.insert("typeid", row.get("TYPEID"));
-            case_data.insert("typedescriontion", row.get("TYPEDESCRIONTION"));
-            case_data.insert("subtypeid", row.get("SUBTYPEID"));
-            case_data.insert("typesubdescriontion", row.get("TYPESUBDESCRIONTION"));
-            case_data.insert("priorityid", row.get("PRIORITYID"));
-            case_data.insert("prioritydescription", row.get("PRIORITYDESCRIPTION"));
-            case_data.insert("description", row.get("DESCRIPTION"));
-            case_data.insert("phoneno", row.get("PHONENO"));
-            case_data.insert("email", row.get("EMAIL"));
-            case_data.insert("contactid", row.get("CONTACTID"));
-            case_data.insert("contactdescription", row.get("CONTACTDESCRIPTION"));
-            case_data.insert("relationid", row.get("RELATIONID"));
-            case_data.insert("relationdescription", row.get("RELATIONDESCRIPTION"));
-            case_data.insert("relationname", row.get("RELATIONNAME"));
-            case_data.insert("usrupd", row.get("USRUPD"));
-            case_data.insert("dtmupd", row.get("DTMUPD"));
-            case_data.insert("callerid", row.get("CALLERID"));
-            case_data.insert("email_", row.get("EMAIL_"));
-            case_data.insert("date_cr", row.get("DATE_CR"));
-            case_data.insert("foragingdays", row.get("FORAGINGDAYS"));
-
-            msg.push(case_data);
-        }
-
-        result.insert("total", rs.len());
-        result.insert("success", true);
-        result.insert("data", msg);
-    } else {
-        result.insert("success", false);
-    }
-
-    serde_json::to_string(&result).unwrap()
+    Ok(ResponseData {
+        success: true,
+        total: Some(rows.len() as i32),
+        data: Some(rows),
+    })
 }

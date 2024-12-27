@@ -67,7 +67,7 @@ async fn getAllCase(
     // let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
 
     // Call the database function
-    match getCase(db_pool.inner(), query, col, typeid).await {
+    match getCase(db_pool.inner(), query, col).await {
         Ok(data) => Ok(Json(data)),
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
