@@ -56,7 +56,8 @@ async fn readSubType(
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
 }
-#[get("/get_case")]
+
+#[get("/getCase")]
 async fn get_case(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
@@ -66,7 +67,7 @@ async fn get_case(
     // let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
 
     // Call the database function
-    match readgettblSubType(db_pool.inner(), query, col, typeid).await {
+    match get_case(db_pool.inner(), query, col, typeid).await {
         Ok(data) => Ok(Json(data)),
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
