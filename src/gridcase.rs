@@ -165,7 +165,7 @@ pub async fn readgetBranchID(
     db_pool: &MssqlPool,
     query: Option<String>,
     col: Option<String>,
-    typeid: i32, // Adding typeid as a parameter
+    branchid: i32, // Adding branchid as a parameter
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     // Start with the base query
     let mut base_query = String::from(
@@ -180,7 +180,7 @@ pub async fn readgetBranchID(
     }
 
     // Perform the query with parameters to avoid syntax errors and prevent SQL injection
-    let mut query = sqlx::query(&base_query).bind(typeid); // Bind typeid first
+    let mut query = sqlx::query(&base_query).bind(branchid); // Bind branchid first
 
     // If a search query is provided, bind the value for the LIKE search
     if let Some(query_str) = query {

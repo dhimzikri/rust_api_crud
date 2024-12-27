@@ -54,9 +54,9 @@ async fn readSubType(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
-    typeid: i32,
+    branchid: i32,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
-    match readgetBranchID(db_pool.inner(), query, col, typeid).await {
+    match readgetBranchID(db_pool.inner(), query, col, branchid).await {
         Ok(data) => Ok(Json(data)),
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
