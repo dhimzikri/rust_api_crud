@@ -204,16 +204,17 @@ pub async fn getCase(
     let count_last = start + limit;
 
     // Base query condition
-    let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
+    let mut base_query = String::from("0=0 AND a.statusid <> 1 AND a.usrupd = '");
+    base_query.push_str(user_name);
+    base_query.push_str("'");
 
     // Apply the query filter if present
     if let (Some(query), Some(col)) = (query, col) {
-        src = format!("{} AND {} LIKE '%{}%'", src, col, query);
+        base_query.push_str(&format!(" AND {} LIKE '%{}%'", col, query));
     }
 
-    // SQL query
-    let mut sql_query = String::from(
-        r#"
+    // SQL query setup
+    let mut sql_query = String::from(r#"
         SET NOCOUNT ON;
         DECLARE @jml AS INT;
 
@@ -226,7 +227,12 @@ pub async fn getCase(
         INNER JOIN "status" e ON a.statusid = e.statusid
         INNER JOIN "contact" f ON a.contactid = f.contactid
         INNER JOIN "relation" g ON a.relationid = g.relationid
-        WHERE {src};
+        WHERE "#);
+
+    // Append the condition to the query
+    sql_query.push_str(&base_query);
+
+    sql_query.push_str(r#"
 
         -- Select paginated records
         SELECT *
@@ -245,15 +251,23 @@ pub async fn getCase(
             INNER JOIN "status" e ON a.statusid = e.statusid
             INNER JOIN "contact" f ON a.contactid = f.contactid
             INNER JOIN "relation" g ON a.relationid = g.relationid
-            WHERE {src}
+            WHERE "#);
+
+    // Append the condition again for the pagination query part
+    sql_query.push_str(&base_query);
+
+    sql_query.push_str(r#"
         ) AS a
-        WHERE RowNumber > {start} AND RowNumber <= {count_last}
+        WHERE RowNumber > "#);
+
+    sql_query.push_str(&start.to_string());
+    
+    sql_query.push_str(r#" AND RowNumber <= "#);
+    sql_query.push_str(&count_last.to_string());
+
+    sql_query.push_str(r#"
         ORDER BY a.foragingdays DESC;
-        "#,
-        src = src,
-        start = start,
-        count_last = count_last
-    );
+    "#);
 
     // Execute the SQL query
     let rows = sqlx::query(&sql_query)
@@ -391,9 +405,9 @@ pub async fn getCase(
             "foragingdays".to_string(),
             Value::Number(row.try_get::<i32, _>("FORAGINGDAYS")?.into()),
         );
-    
+
         result.push(row_map);
     }
-    
+
     Ok(result)
 }
