@@ -269,12 +269,18 @@ pub async fn getCase(
         ORDER BY a.foragingdays DESC;
     "#);
 
-    // Execute the SQL query
+    // Execute the SQL query with error handling
     let rows = sqlx::query(&sql_query)
         .fetch_all(db_pool)
-        .await?;
+        .await
+        .map_err(|e| {
+            // Log the error here and return it gracefully
+            eprintln!("Error executing query: {}", e);
+            sqlx::Error::Database(e)
+        })?;
 
     let mut result = Vec::new();
+
 
     // Process each row into a HashMap
     for row in rows {
