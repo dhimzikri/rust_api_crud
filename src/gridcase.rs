@@ -190,30 +190,50 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-pub async fn getCase(
+pub async fn get_case(
     db_pool: &Pool<Mssql>,
     query: Option<String>,
     col: Option<String>,
     start: Option<i32>,
     limit: Option<i32>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
-    let user_name = "8023"; // Replace with actual user
+    let user_name = "8023"; // Replace with actual user name
     let start = start.unwrap_or(0);
     let limit = limit.unwrap_or(10);
-    let countlast = start + limit;
+    let count_last = start + limit;
 
     let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
 
-    if let (Some(query), Some(col)) = (query.clone(), col.clone()) {
-        src = format!("{} AND {} LIKE '%{}%'", src, col, query);
-    }
+    // Conditional source string building using match expression
+    let src = match (query.clone(), col.clone()) {
+        (Some(query), Some(col)) => format!("{} AND {} LIKE '%{}%'", src, col, query),
+        _ => src,
+    };
 
     let sql_query = format!(
-            r#"
-            SET NOCOUNT ON;
-            DECLARE @jml AS INT;
-    
-            SELECT @jml = COUNT(a.ticketno)
+        r#"
+        SET NOCOUNT ON;
+        DECLARE @jml AS INT;
+
+        SELECT @jml = COUNT(a.ticketno)
+        FROM "Case" a
+        INNER JOIN tbltype b ON a.TypeID = b.TypeID
+        INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
+        INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
+        INNER JOIN "status" e ON a.statusid = e.statusid
+        INNER JOIN "contact" f ON a.contactid = f.contactid
+        INNER JOIN "relation" g ON a.relationid = g.relationid
+        {src};
+
+        SELECT *
+        FROM (
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
+                a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, a.typeid, b.description AS typedescriontion,
+                a.subtypeid, c.SubDescription AS typesubdescriontion, a.priorityid, d.Description AS prioritydescription, a.statusid,
+                e.statusname, e.description AS statusdescription, a.customername, a.branchid, a.description, a.phoneno, a.email,
+                a.usrupd, a.dtmupd, a.date_cr, @jml AS jml, f.contactid, f.Description AS contactdescription, a.relationid,
+                g.description AS relationdescription, a.relationname, a.callerid, a.email_, a.foragingdays
             FROM "Case" a
             INNER JOIN tbltype b ON a.TypeID = b.TypeID
             INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
@@ -221,32 +241,14 @@ pub async fn getCase(
             INNER JOIN "status" e ON a.statusid = e.statusid
             INNER JOIN "contact" f ON a.contactid = f.contactid
             INNER JOIN "relation" g ON a.relationid = g.relationid
-            {src};
-    
-            SELECT *
-            FROM (
-                SELECT 
-                    ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
-                    a.flagcompany,a.ticketno,a.agreementno,a.applicationid,a.customerid,a.typeid,b.description AS typedescriontion,
-                    a.subtypeid,c.SubDescription AS typesubdescriontion,a.priorityid,d.Description AS prioritydescription,a.statusid,
-                    e.statusname,e.description AS statusdescription,a.customername,a.branchid,a.description,a.phoneno,a.email,
-                    a.usrupd,a.dtmupd,a.date_cr,@jml AS jml,f.contactid,f.Description AS contactdescription,a.relationid,
-                    g.description AS relationdescription,a.relationname,a.callerid,a.email_,a.foragingdays
-                FROM "Case" a
-                INNER JOIN tbltype b ON a.TypeID = b.TypeID
-                INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-                INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
-                INNER JOIN "status" e ON a.statusid = e.statusid
-                INNER JOIN "contact" f ON a.contactid = f.contactid
-                INNER JOIN "relation" g ON a.relationid = g.relationid
-                {src}
-            ) AS a
-            WHERE RowNumber > {start} AND RowNumber <= {countlast}
-            ORDER BY a.foragingdays DESC;
-            "#,
+            {src}
+        ) AS a
+        WHERE RowNumber > {start} AND RowNumber <= {count_last}
+        ORDER BY a.foragingdays DESC;
+        "#,
         src = src,
-        start = start, 
-        countlast = countlast
+        start = start,
+        count_last = count_last
     );
 
     let rows = sqlx::query(&sql_query)
