@@ -205,7 +205,7 @@ pub async fn getCase(
     let mut src1 = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
 
     if let (Some(query), Some(col)) = (query.clone(), col.clone()) {
-        src2 = format!("{} AND {} LIKE '%{}%'", src1, col, query);
+        src2 = format!("{} AND {} LIKE '%{}%'", src1, src2, col, query);
     }
 
     let sql_query = format!(
