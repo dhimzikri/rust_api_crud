@@ -198,70 +198,23 @@ pub async fn getCase(
     limit: Option<i32>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let user_name = "8023"; // Replace with actual user
-    let start = query_params.start.unwrap_or(0);
-    let limit = query_params.limit.unwrap_or(10);
-    let query = query_params.query.clone();
-    let col = query_params.col.clone();
+    let start = start.unwrap_or(0);
+    let limit = limit.unwrap_or(10);
+    let countlast = start + limit;
 
-    // Build dynamic filter clause
-    let mut filter_clause = String::new();
-    if let Some(query_term) = query {
-        if let Some(column) = col {
-            filter_clause = format!("WHERE {} LIKE '%{}%'", column, query_term);
-        }
+    let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
+
+    if let (Some(query), Some(col)) = (query.clone(), col.clone()) {
+        src = format!("{} AND {} LIKE '%{}%'", src, col, query);
     }
 
-    // Query with pagination and dynamic filter
-    let sql = format!(
-        r#"
-        SET NOCOUNT ON;
-        DECLARE @jml AS INT;
-
-        SELECT @jml = COUNT(a.ticketno)
-        FROM "Case" a
-        INNER JOIN tbltype b ON a.TypeID = b.TypeID
-        INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-        INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
-        INNER JOIN "status" e ON a.statusid = e.statusid
-        INNER JOIN "contact" f ON a.contactid = f.contactid
-        INNER JOIN "relation" g ON a.relationid = g.relationid
-        {filter_clause};
-
-        SELECT *
-        FROM (
-            SELECT 
-                ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
-                a.flagcompany, 
-                a.ticketno, 
-                a.agreementno, 
-                a.applicationid, 
-                a.customerid, 
-                a.typeid, 
-                b.description AS typedescriontion, 
-                a.subtypeid, 
-                c.SubDescription AS typesubdescriontion, 
-                a.priorityid, 
-                d.Description AS prioritydescription, 
-                a.statusid, 
-                e.statusname, 
-                e.description AS statusdescription, 
-                a.customername, 
-                a.branchid, 
-                a.description, 
-                a.phoneno, 
-                a.email, 
-                a.usrupd, 
-                a.dtmupd, 
-                a.date_cr, 
-                @jml AS jml, 
-                f.contactid, 
-                f.Description AS contactdescription, 
-                a.relationid, 
-                g.description AS relationdescription, 
-                a.relationname, 
-                a.callerid, 
-                a.email_, 
-                a.foragingdays
+    let sql_query = format!(
+        let sql = format!(
+            r#"
+            SET NOCOUNT ON;
+            DECLARE @jml AS INT;
+    
+            SELECT @jml = COUNT(a.ticketno)
             FROM "Case" a
             INNER JOIN tbltype b ON a.TypeID = b.TypeID
             INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
@@ -269,25 +222,173 @@ pub async fn getCase(
             INNER JOIN "status" e ON a.statusid = e.statusid
             INNER JOIN "contact" f ON a.contactid = f.contactid
             INNER JOIN "relation" g ON a.relationid = g.relationid
-            {filter_clause}
-        ) AS a
-        WHERE RowNumber > {start} AND RowNumber <= {limit}
-        ORDER BY a.foragingdays DESC;
-        "#,
-        filter_clause = filter_clause,
-        start = start,
-        limit = limit
+            {src};
+    
+            SELECT *
+            FROM (
+                SELECT 
+                    ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
+                    a.flagcompany,a.ticketno,a.agreementno,a.applicationid,a.customerid,a.typeid,b.description AS typedescriontion,
+                    a.subtypeid,c.SubDescription AS typesubdescriontion,a.priorityid,d.Description AS prioritydescription,a.statusid,
+                    e.statusname,e.description AS statusdescription,a.customername,a.branchid,a.description,a.phoneno,a.email,
+                    a.usrupd,a.dtmupd,a.date_cr,@jml AS jml,f.contactid,f.Description AS contactdescription,a.relationid,
+                    g.description AS relationdescription,a.relationname,a.callerid,a.email_,a.foragingdays
+                FROM "Case" a
+                INNER JOIN tbltype b ON a.TypeID = b.TypeID
+                INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
+                INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
+                INNER JOIN "status" e ON a.statusid = e.statusid
+                INNER JOIN "contact" f ON a.contactid = f.contactid
+                INNER JOIN "relation" g ON a.relationid = g.relationid
+                {src}
+            ) AS a
+            WHERE RowNumber > {start} AND RowNumber <= {countlast}
+            ORDER BY a.foragingdays DESC;
+            "#,
+        src = src,
+        src = src,
+        start = start, 
+        countlast = countlast
     );
 
-    // Execute the query
-    match sqlx::query_as::<_, Case>(&sql)
-        .fetch_all(&conn.0)
-        .await
-    {
-        Ok(results) => Ok(Json(results)),
-        Err(err) => Err(status::Custom(
-            rocket::http::Status::InternalServerError,
-            format!("Database error: {}", err),
-        )),
+    let rows = sqlx::query(&sql_query)
+        .fetch_all(db_pool)
+        .await?;
+    
+    let mut result = Vec::new();
+
+    // Transform the result into a vector of `HashMap<String, Value>`
+    for row in rows {
+        let mut row_map = HashMap::new();
+    
+        // Using try_get to retrieve values from each column and inserting them into the row_map map
+        row_map.insert(
+            "flagcompany".to_string(),
+            Value::String(row.try_get::<String, _>("FLAGCOMPANY")?),
+        );
+        row_map.insert(
+            "ticketno".to_string(),
+            Value::String(row.try_get::<String, _>("TICKETNO")?),
+        );
+        row_map.insert(
+            "agreementno".to_string(),
+            Value::String(row.try_get::<String, _>("AGREEMENTNO")?),
+        );
+        row_map.insert(
+            "branchid".to_string(),
+            Value::String(row.try_get::<String, _>("BRANCHID")?),
+        );
+        row_map.insert(
+            "customername".to_string(),
+            Value::String(row.try_get::<String, _>("CUSTOMERNAME")?),
+        );
+        row_map.insert(
+            "applicationid".to_string(),
+            Value::String(row.try_get::<String, _>("APPLICATIONID")?),
+        );
+        row_map.insert(
+            "customerid".to_string(),
+            Value::String(row.try_get::<String, _>("CUSTOMERID")?),
+        );
+        row_map.insert(
+            "statusid".to_string(),
+            Value::Number(row.try_get::<i32, _>("STATUSID")?.into()),
+        );
+        row_map.insert(
+            "statusdescription".to_string(),
+            Value::String(row.try_get::<String, _>("STATUSDESCRIPTION")?),
+        );
+        row_map.insert(
+            "subdescription".to_string(),
+            Value::String(row.try_get::<String, _>("SUBDESCRIPTION")?),
+        );
+        row_map.insert(
+            "statusname".to_string(),
+            Value::String(row.try_get::<String, _>("STATUSNAME")?),
+        );
+        row_map.insert(
+            "typeid".to_string(),
+            Value::Number(row.try_get::<i32, _>("TYPEID")?.into()),
+        );
+        row_map.insert(
+            "typedescriontion".to_string(),
+            Value::String(row.try_get::<String, _>("TYPEDESCRIONTION")?),
+        );
+        row_map.insert(
+            "subtypeid".to_string(),
+            Value::Number(row.try_get::<i32, _>("SUBTYPEID")?.into()),
+        );
+        row_map.insert(
+            "typesubdescriontion".to_string(),
+            Value::String(row.try_get::<String, _>("TYPESUBDESCRIONTION")?),
+        );
+        row_map.insert(
+            "priorityid".to_string(),
+            Value::Number(row.try_get::<i32, _>("PRIORITYID")?.into()),
+        );
+        row_map.insert(
+            "prioritydescription".to_string(),
+            Value::String(row.try_get::<String, _>("PRIORITYDESCRIPTION")?),
+        );
+        row_map.insert(
+            "description".to_string(),
+            Value::String(row.try_get::<String, _>("DESCRIPTION")?),
+        );
+        row_map.insert(
+            "phoneno".to_string(),
+            Value::String(row.try_get::<String, _>("PHONENO")?),
+        );
+        row_map.insert(
+            "email".to_string(),
+            Value::String(row.try_get::<String, _>("EMAIL")?),
+        );
+        row_map.insert(
+            "contactid".to_string(),
+            Value::String(row.try_get::<String, _>("CONTACTID")?),
+        );
+        row_map.insert(
+            "contactdescription".to_string(),
+            Value::String(row.try_get::<String, _>("CONTACTDESCRIPTION")?),
+        );
+        row_map.insert(
+            "relationid".to_string(),
+            Value::String(row.try_get::<String, _>("RELATIONID")?),
+        );
+        row_map.insert(
+            "relationdescription".to_string(),
+            Value::String(row.try_get::<String, _>("RELATIONDESCRIPTION")?),
+        );
+        row_map.insert(
+            "relationname".to_string(),
+            Value::String(row.try_get::<String, _>("RELATIONNAME")?),
+        );
+        row_map.insert(
+            "usrupd".to_string(),
+            Value::String(row.try_get::<String, _>("USRUPD")?),
+        );
+        row_map.insert(
+            "dtmupd".to_string(),
+            Value::String(row.try_get::<String, _>("DTMUPD")?),
+        );
+        row_map.insert(
+            "callerid".to_string(),
+            Value::String(row.try_get::<String, _>("CALLERID")?),
+        );
+        row_map.insert(
+            "email_".to_string(),
+            Value::String(row.try_get::<String, _>("EMAIL_")?),
+        );
+        row_map.insert(
+            "date_cr".to_string(),
+            Value::String(row.try_get::<String, _>("DATE_CR")?),
+        );
+        row_map.insert(
+            "foragingdays".to_string(),
+            Value::Number(row.try_get::<i32, _>("FORAGINGDAYS")?.into()),
+        );
+    
+        result.push(row_map);
     }
+    
+    Ok(result)
 }
