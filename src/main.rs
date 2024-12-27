@@ -62,8 +62,8 @@ async fn getCase(
     query: Option<String>,
     col: Option<String>,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
-    // Ensure typeid is provided
-    let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
+    // // Ensure typeid is provided
+    // let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
 
     // Call the database function
     match readgettblSubType(db_pool.inner(), query, col, typeid).await {

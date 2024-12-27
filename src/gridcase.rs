@@ -189,7 +189,11 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-pub async fn get_case(request: HashMap<String, String>, user_name: &str) -> String {
+pub async fn getCase(
+    db_pool: &MssqlPool,
+    // query: Option<String>,
+    // col: Option<String>,
+    // typeid: i32, // Adding typeid as a parameter
     let mut result = HashMap::new();
     let query = request.get("query").unwrap_or(&"".to_string());
     let col = request.get("col");
@@ -206,7 +210,9 @@ pub async fn get_case(request: HashMap<String, String>, user_name: &str) -> Stri
         }
     }
 
-    let sql_str = format!(
+) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
+    // Start with the base query
+    let mut base_query = String::from(
         "SET NOCOUNT ON;
         DECLARE @jml AS INT;
         SELECT @jml = COUNT(a.ticketno)
@@ -244,9 +250,9 @@ pub async fn get_case(request: HashMap<String, String>, user_name: &str) -> Stri
         ORDER BY a.foragingdays DESC;",
         src, src, start, countlast
     );
-
-    // Here, exec_sql would be a function that executes the SQL and returns the results
-    if let Some(rs) = exec_sql(&sql_str) {
+    
+       // Here, exec_sql would be a function that executes the SQL and returns the results
+       if let Some(rs) = exec_sql(&sql_str) {
         let mut msg = Vec::new();
 
         for row in rs {
@@ -295,4 +301,3 @@ pub async fn get_case(request: HashMap<String, String>, user_name: &str) -> Stri
 
     serde_json::to_string(&result).unwrap()
 }
-
