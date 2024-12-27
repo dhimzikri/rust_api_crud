@@ -5,7 +5,6 @@ use serde_json::Value;
 use std::collections::HashMap;
 use chrono::NaiveDateTime;
 use rocket::serde::{json::Json, Deserialize, Serialize};
-use rocket::tokio;
 
 pub async fn get_tbl_type_dynamic(
     db_pool: &MssqlPool,
@@ -193,7 +192,7 @@ pub async fn readgettblSubType(
 }
 
 pub async fn getCase(
-    db_pool: &rocket::State<MssqlPool>,
+    db_pool: &MssqlPool,
     query: Option<String>,
     col: Option<String>,
     start: Option<i32>,
