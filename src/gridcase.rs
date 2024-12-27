@@ -126,17 +126,18 @@ pub async fn readgettblSubType(
         FROM tblSubType 
         WHERE typeid = @typeid AND isactive = 1"
     );
+
     // If query and column are provided, append the filtering logic
     if let (Some(query_str), Some(col_name)) = (&query, &col) {
-        base_query.push_str(&format!(" AND {} LIKE ?", col_name));
+        base_query.push_str(&format!(" AND {} LIKE @search_query", col_name));
     }
 
-    // Perform the query with parameters to avoid syntax errors and prevent SQL injection
-    let mut query_builder = sqlx::query(&base_query).bind(typeid); // Bind typeid first
+    // Create a query builder
+    let mut query_builder = sqlx::query(&base_query).bind(typeid); // Bind `@typeid` first
 
-    // If a search query is provided, bind the value for the LIKE search
+    // If a search query is provided, bind it to `@search_query`
     if let Some(query_str) = query {
-        query_builder = query_builder.bind(format!("%{}%", query_str)); // Bind the search term with % for LIKE
+        query_builder = query_builder.bind(format!("%{}%", query_str)); // Bind the search term with wildcards
     }
 
     // Execute the query and fetch all rows
