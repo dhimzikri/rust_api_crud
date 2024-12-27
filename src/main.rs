@@ -10,8 +10,7 @@ use std::collections::HashMap;  // Import HashMap from std::collections
 use serde_json::Value;  // Import Value from serde_json
 
 mod gridcase;
-
-use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType};  // Import the updated function
+use gridcase::{get_tbl_type_dynamic,get_contact,readgettblSubType,readgetBranchID};  // Import the updated function
 
 // Route to fetch tblType data
 #[get("/tblType?<query>&<col>")]
@@ -37,6 +36,7 @@ async fn fetch_tbl_contact(
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
 }
+
 #[get("/readgettblSubType?<query>&<col>")]
 async fn readSubType(
     db_pool: &State<MssqlPool>,
@@ -44,7 +44,19 @@ async fn readSubType(
     col: Option<String>,
     typeid: i32,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
-    match readgettblSubType(db_pool.inner(), query, col).await {
+    match readgettblSubType(db_pool.inner(), query, col, typeid).await {
+        Ok(data) => Ok(Json(data)),
+        Err(err) => Err(format!("Failed to fetch data: {}", err)),
+    }
+}
+#[get("/getBranch?<query>&<col>")]
+async fn readSubType(
+    db_pool: &State<MssqlPool>,
+    query: Option<String>,
+    col: Option<String>,
+    typeid: i32,
+) -> Result<Json<Vec<HashMap<String, Value>>>, String> {  // Use HashMap here
+    match readgetBranchID(db_pool.inner(), query, col, typeid).await {
         Ok(data) => Ok(Json(data)),
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
