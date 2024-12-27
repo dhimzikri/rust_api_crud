@@ -1,5 +1,4 @@
-use sqlx::{query, MssqlPool};
-use sqlx::{query, query_as, Pool, Mssql};
+use sqlx::{query, query_as, MssqlPool};
 use sqlx::Row;
 use serde_json::Value;
 use std::collections::HashMap;
@@ -191,100 +190,36 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-#[derive(Deserialize)]
-pub struct QueryParams {
+pub async fn get_case(
+    db_pool: &Pool<Mssql>,
     query: Option<String>,
     col: Option<String>,
     start: Option<i32>,
     limit: Option<i32>,
-}
-
-#[derive(Serialize)]
-pub struct CaseData {
-    flagcompany: String,
-    ticketno: String,
-    agreementno: String,
-    branchid: String,
-    customername: String,
-    applicationid: String,
-    customerid: String,
-    statusid: i32,
-    statusdescription: String,
-    subdescription: String,
-    statusname: String,
-    typeid: i32,
-    typedescriontion: String,
-    subtypeid: i32,
-    typesubdescriontion: String,
-    priorityid: i32,
-    prioritydescription: String,
-    description: String,
-    phoneno: String,
-    email: String,
-    contactid: i32,
-    contactdescription: String,
-    relationid: i32,
-    relationdescription: String,
-    relationname: String,
-    usrupd: String,
-    dtmupd: String,
-    callerid: String,
-    email_: String,
-    date_cr: String,
-    foragingdays: i32,
-}
-
-#[derive(Serialize)]
-pub struct ResponseData {
-    success: bool,
-    total: Option<i32>,
-    data: Option<Vec<CaseData>>,
-}
-
-pub async fn getCase(
-    pool: &Pool<Mssql>,
-    query_params: QueryParams,
-    user_name: String,
-) -> Result<ResponseData, sqlx::Error> {
-    let QueryParams { query, col, start, limit } = query_params;
-
+) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
+    let user_name = "example_user"; // Replace with actual user
     let start = start.unwrap_or(0);
-    let limit = limit.unwrap_or(50);
-    let count_last = start + limit;
+    let limit = limit.unwrap_or(10);
+    let countlast = start + limit;
 
-    let mut src = format!("0=0 AND a.statusid<>1 AND a.usrupd='{}'", user_name);
+    let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
 
-    if let Some(q) = query {
-        if let Some(c) = col {
-            src.push_str(&format!(" AND {} LIKE '%{}%'", c, q));
-        }
+    if let (Some(query), Some(col)) = (query.clone(), col.clone()) {
+        src = format!("{} AND {} LIKE '%{}%'", src, col, query);
     }
 
-    let sql = format!(
+    let sql_query = format!(
         r#"
-        SET NOCOUNT ON;
-        DECLARE @jml AS INT;
-        
-        SELECT @jml = COUNT(a.ticketno)
-        FROM [Case] a
-        INNER JOIN tbltype b ON a.TypeID = b.TypeID
-        INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-        INNER JOIN [Priority] d ON a.PriorityID = d.PriorityID
-        INNER JOIN [status] e ON a.statusid = e.statusid
-        INNER JOIN [contact] f ON a.contactid = f.contactid
-        INNER JOIN [relation] g ON a.relationid = g.relationid
-        WHERE {src};
-
         SELECT *
         FROM (
-            SELECT ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber,
-                a.flagcompany, a.ticketno, a.agreementno, a.branchid, a.customername,
-                a.applicationid, a.customerid, a.statusid, e.description AS statusdescription,
-                c.SubDescription AS subdescription, e.statusname, a.typeid, b.description AS typedescriontion,
-                a.subtypeid, c.SubDescription AS typesubdescriontion, a.priorityid, d.Description AS prioritydescription,
-                a.description, a.phoneno, a.email, f.contactid, f.Description AS contactdescription,
-                g.description AS relationdescription, g.relationid, a.relationname, a.usrupd,
-                a.dtmupd, a.callerid, a.email_, a.date_cr, a.foragingdays
+            SELECT
+                ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS RowNumber,
+                a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid,
+                a.typeid, b.description AS typedescriontion, a.subtypeid, c.SubDescription AS typesubdescriontion,
+                a.priorityid, d.Description AS prioritydescription, a.statusid, e.statusname,
+                e.description AS statusdescription, a.customername, a.branchid, a.description,
+                a.phoneno, a.email, a.usrupd, a.dtmupd, a.date_cr, f.contactid, f.Description AS contactdescription,
+                a.relationid, g.description AS relationdescription, a.relationname, a.callerid, a.email_, a.foragingdays
             FROM [Case] a
             INNER JOIN tbltype b ON a.TypeID = b.TypeID
             INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
@@ -292,18 +227,29 @@ pub async fn getCase(
             INNER JOIN [status] e ON a.statusid = e.statusid
             INNER JOIN [contact] f ON a.contactid = f.contactid
             INNER JOIN [relation] g ON a.relationid = g.relationid
-            WHERE {src}
-        ) AS data
-        WHERE RowNumber > {start} AND RowNumber <= {count_last}
-        ORDER BY data.foragingdays DESC;
-        "#
+            WHERE {}
+        ) AS a
+        WHERE RowNumber > {} AND RowNumber <= {}
+        ORDER BY a.foragingdays DESC;
+        "#,
+        src, start, countlast
     );
 
-    let rows = query_as::<_, CaseData>(&sql).fetch_all(pool).await?;
+    let result = query(&sql_query)
+        .fetch_all(db_pool)
+        .await?;
 
-    Ok(ResponseData {
-        success: true,
-        total: Some(rows.len() as i32),
-        data: Some(rows),
-    })
+    // Transform the result into a vector of `HashMap<String, Value>`
+    let data: Vec<HashMap<String, Value>> = result
+        .into_iter()
+        .map(|row| {
+            let mut map = HashMap::new();
+            for (col, value) in row.columns().iter().zip(row.values()) {
+                map.insert(col.name().to_string(), value.clone());
+            }
+            map
+        })
+        .collect();
+
+    Ok(data)
 }

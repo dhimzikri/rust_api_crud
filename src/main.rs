@@ -57,22 +57,19 @@ async fn readSubType(
     }
 }
 
-#[get("/getCase")]
-async fn getAllCase(
+#[get("/grid_case?<query>&<col>&<start>&<limit>")]
+pub async fn grid_case(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
+    start: Option<i32>,
+    limit: Option<i32>,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
-    // // Ensure typeid is provided
-    // let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
-
-    // Call the database function
-    match getCase(db_pool.inner(), query, col).await {
+    match get_case(db_pool.inner(), query, col, start, limit).await {
         Ok(data) => Ok(Json(data)),
         Err(err) => Err(format!("Failed to fetch data: {}", err)),
     }
 }
-
 
 // #[get("/getBranch?<query>&<col>")]
 // async fn readBranch(
