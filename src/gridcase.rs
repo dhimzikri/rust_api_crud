@@ -213,7 +213,7 @@ pub async fn getCase(
 
     // SQL query
     let sql_query = format!(
-        r#"SELECT TOP (10) * FROM [Portal_HelpDesk_CS].[dbo].[Case];
+        r#"SELECT TOP (10) flagcompany FROM [Case];
         "#,
         // src = src,
         // start = start,
@@ -278,129 +278,140 @@ pub async fn getCase(
             "flagcompany".to_string(),
             Value::String(row.try_get::<String, _>("FLAGCOMPANY")?),
         );
-        row_map.insert(
-            "ticketno".to_string(),
-            Value::String(row.try_get::<String, _>("TICKETNO")?),
-        );
-        row_map.insert(
-            "agreementno".to_string(),
-            Value::String(row.try_get::<String, _>("AGREEMENTNO")?),
-        );
-        row_map.insert(
-            "branchid".to_string(),
-            Value::String(row.try_get::<String, _>("BRANCHID")?),
-        );
-        row_map.insert(
-            "customername".to_string(),
-            Value::String(row.try_get::<String, _>("CUSTOMERNAME")?),
-        );
-        row_map.insert(
-            "applicationid".to_string(),
-            Value::String(row.try_get::<String, _>("APPLICATIONID")?),
-        );
-        row_map.insert(
-            "customerid".to_string(),
-            Value::String(row.try_get::<String, _>("CUSTOMERID")?),
-        );
-        row_map.insert(
-            "statusid".to_string(),
-            Value::Number(row.try_get::<i32, _>("STATUSID")?.into()),
-        );
-        row_map.insert(
-            "statusdescription".to_string(),
-            Value::String(row.try_get::<String, _>("STATUSDESCRIPTION")?),
-        );
-        row_map.insert(
-            "subdescription".to_string(),
-            Value::String(row.try_get::<String, _>("SUBDESCRIPTION")?),
-        );
-        row_map.insert(
-            "statusname".to_string(),
-            Value::String(row.try_get::<String, _>("STATUSNAME")?),
-        );
-        row_map.insert(
-            "typeid".to_string(),
-            Value::Number(row.try_get::<i32, _>("TYPEID")?.into()),
-        );
-        row_map.insert(
-            "typedescriontion".to_string(),
-            Value::String(row.try_get::<String, _>("TYPEDESCRIONTION")?),
-        );
-        row_map.insert(
-            "subtypeid".to_string(),
-            Value::Number(row.try_get::<i32, _>("SUBTYPEID")?.into()),
-        );
-        row_map.insert(
-            "typesubdescriontion".to_string(),
-            Value::String(row.try_get::<String, _>("TYPESUBDESCRIONTION")?),
-        );
-        row_map.insert(
-            "priorityid".to_string(),
-            Value::Number(row.try_get::<i32, _>("PRIORITYID")?.into()),
-        );
-        row_map.insert(
-            "prioritydescription".to_string(),
-            Value::String(row.try_get::<String, _>("PRIORITYDESCRIPTION")?),
-        );
-        row_map.insert(
-            "description".to_string(),
-            Value::String(row.try_get::<String, _>("DESCRIPTION")?),
-        );
-        row_map.insert(
-            "phoneno".to_string(),
-            Value::String(row.try_get::<String, _>("PHONENO")?),
-        );
-        row_map.insert(
-            "email".to_string(),
-            Value::String(row.try_get::<String, _>("EMAIL")?),
-        );
-        row_map.insert(
-            "contactid".to_string(),
-            Value::String(row.try_get::<String, _>("CONTACTID")?),
-        );
-        row_map.insert(
-            "contactdescription".to_string(),
-            Value::String(row.try_get::<String, _>("CONTACTDESCRIPTION")?),
-        );
-        row_map.insert(
-            "relationid".to_string(),
-            Value::String(row.try_get::<String, _>("RELATIONID")?),
-        );
-        row_map.insert(
-            "relationdescription".to_string(),
-            Value::String(row.try_get::<String, _>("RELATIONDESCRIPTION")?),
-        );
-        row_map.insert(
-            "relationname".to_string(),
-            Value::String(row.try_get::<String, _>("RELATIONNAME")?),
-        );
-        row_map.insert(
-            "usrupd".to_string(),
-            Value::String(row.try_get::<String, _>("USRUPD")?),
-        );
-        row_map.insert(
-            "dtmupd".to_string(),
-            Value::String(row.try_get::<String, _>("DTMUPD")?),
-        );
-        row_map.insert(
-            "callerid".to_string(),
-            Value::String(row.try_get::<String, _>("CALLERID")?),
-        );
-        row_map.insert(
-            "email_".to_string(),
-            Value::String(row.try_get::<String, _>("EMAIL_")?),
-        );
-        row_map.insert(
-            "date_cr".to_string(),
-            Value::String(row.try_get::<String, _>("DATE_CR")?),
-        );
-        row_map.insert(
-            "foragingdays".to_string(),
-            Value::Number(row.try_get::<i32, _>("FORAGINGDAYS")?.into()),
-        );
-    
         result.push(row_map);
     }
+    
+    // for row in rows {
+    //     let mut row_map = HashMap::new();
+    
+    //     // Using try_get to retrieve values from each column and inserting them into the row_map map
+    //     row_map.insert(
+    //         "flagcompany".to_string(),
+    //         Value::String(row.try_get::<String, _>("FLAGCOMPANY")?),
+    //     );
+    //     row_map.insert(
+    //         "ticketno".to_string(),
+    //         Value::String(row.try_get::<String, _>("TICKETNO")?),
+    //     );
+    //     row_map.insert(
+    //         "agreementno".to_string(),
+    //         Value::String(row.try_get::<String, _>("AGREEMENTNO")?),
+    //     );
+    //     row_map.insert(
+    //         "branchid".to_string(),
+    //         Value::String(row.try_get::<String, _>("BRANCHID")?),
+    //     );
+    //     row_map.insert(
+    //         "customername".to_string(),
+    //         Value::String(row.try_get::<String, _>("CUSTOMERNAME")?),
+    //     );
+    //     row_map.insert(
+    //         "applicationid".to_string(),
+    //         Value::String(row.try_get::<String, _>("APPLICATIONID")?),
+    //     );
+    //     row_map.insert(
+    //         "customerid".to_string(),
+    //         Value::String(row.try_get::<String, _>("CUSTOMERID")?),
+    //     );
+    //     row_map.insert(
+    //         "statusid".to_string(),
+    //         Value::Number(row.try_get::<i32, _>("STATUSID")?.into()),
+    //     );
+    //     row_map.insert(
+    //         "statusdescription".to_string(),
+    //         Value::String(row.try_get::<String, _>("STATUSDESCRIPTION")?),
+    //     );
+    //     row_map.insert(
+    //         "subdescription".to_string(),
+    //         Value::String(row.try_get::<String, _>("SUBDESCRIPTION")?),
+    //     );
+    //     row_map.insert(
+    //         "statusname".to_string(),
+    //         Value::String(row.try_get::<String, _>("STATUSNAME")?),
+    //     );
+    //     row_map.insert(
+    //         "typeid".to_string(),
+    //         Value::Number(row.try_get::<i32, _>("TYPEID")?.into()),
+    //     );
+    //     row_map.insert(
+    //         "typedescriontion".to_string(),
+    //         Value::String(row.try_get::<String, _>("TYPEDESCRIONTION")?),
+    //     );
+    //     row_map.insert(
+    //         "subtypeid".to_string(),
+    //         Value::Number(row.try_get::<i32, _>("SUBTYPEID")?.into()),
+    //     );
+    //     row_map.insert(
+    //         "typesubdescriontion".to_string(),
+    //         Value::String(row.try_get::<String, _>("TYPESUBDESCRIONTION")?),
+    //     );
+    //     row_map.insert(
+    //         "priorityid".to_string(),
+    //         Value::Number(row.try_get::<i32, _>("PRIORITYID")?.into()),
+    //     );
+    //     row_map.insert(
+    //         "prioritydescription".to_string(),
+    //         Value::String(row.try_get::<String, _>("PRIORITYDESCRIPTION")?),
+    //     );
+    //     row_map.insert(
+    //         "description".to_string(),
+    //         Value::String(row.try_get::<String, _>("DESCRIPTION")?),
+    //     );
+    //     row_map.insert(
+    //         "phoneno".to_string(),
+    //         Value::String(row.try_get::<String, _>("PHONENO")?),
+    //     );
+    //     row_map.insert(
+    //         "email".to_string(),
+    //         Value::String(row.try_get::<String, _>("EMAIL")?),
+    //     );
+    //     row_map.insert(
+    //         "contactid".to_string(),
+    //         Value::String(row.try_get::<String, _>("CONTACTID")?),
+    //     );
+    //     row_map.insert(
+    //         "contactdescription".to_string(),
+    //         Value::String(row.try_get::<String, _>("CONTACTDESCRIPTION")?),
+    //     );
+    //     row_map.insert(
+    //         "relationid".to_string(),
+    //         Value::String(row.try_get::<String, _>("RELATIONID")?),
+    //     );
+    //     row_map.insert(
+    //         "relationdescription".to_string(),
+    //         Value::String(row.try_get::<String, _>("RELATIONDESCRIPTION")?),
+    //     );
+    //     row_map.insert(
+    //         "relationname".to_string(),
+    //         Value::String(row.try_get::<String, _>("RELATIONNAME")?),
+    //     );
+    //     row_map.insert(
+    //         "usrupd".to_string(),
+    //         Value::String(row.try_get::<String, _>("USRUPD")?),
+    //     );
+    //     row_map.insert(
+    //         "dtmupd".to_string(),
+    //         Value::String(row.try_get::<String, _>("DTMUPD")?),
+    //     );
+    //     row_map.insert(
+    //         "callerid".to_string(),
+    //         Value::String(row.try_get::<String, _>("CALLERID")?),
+    //     );
+    //     row_map.insert(
+    //         "email_".to_string(),
+    //         Value::String(row.try_get::<String, _>("EMAIL_")?),
+    //     );
+    //     row_map.insert(
+    //         "date_cr".to_string(),
+    //         Value::String(row.try_get::<String, _>("DATE_CR")?),
+    //     );
+    //     row_map.insert(
+    //         "foragingdays".to_string(),
+    //         Value::Number(row.try_get::<i32, _>("FORAGINGDAYS")?.into()),
+    //     );
+    
+    //     result.push(row_map);
+    // }
     
     Ok(result)
 }
