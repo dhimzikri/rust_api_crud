@@ -50,7 +50,7 @@ async fn readSubType(
     }
 }
 #[get("/getBranch?<query>&<col>")]
-async fn readSubType(
+async fn readBranch(
     db_pool: &State<MssqlPool>,
     query: Option<String>,
     col: Option<String>,
@@ -78,7 +78,7 @@ async fn main() -> Result<(), rocket::Error> {
     // Launch the Rocket application
     rocket::build()
         .manage(db_pool)
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
         .launch()
         .await?;
 
