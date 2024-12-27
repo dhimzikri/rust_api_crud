@@ -202,10 +202,10 @@ pub async fn getCase(
     let limit = limit.unwrap_or(10);
     let countlast = start + limit;
 
-    let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
+    let mut src1 = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
 
     if let (Some(query), Some(col)) = (query.clone(), col.clone()) {
-        src = format!("{} AND {} LIKE '%{}%'", src, col, query);
+        src2 = format!("{} AND {} LIKE '%{}%'", src1, col, query);
     }
 
     let sql_query = format!(
@@ -246,7 +246,7 @@ pub async fn getCase(
         WHERE RowNumber > {} AND RowNumber <= {} 
         ORDER BY a.foragingdays DESC;
         "#,
-        src, start, countlast
+        src1, src2 , start, countlast
     );
 
     let rows = sqlx::query(&sql_query)
