@@ -5,7 +5,6 @@ use serde_json::Value;
 use std::collections::HashMap;
 use chrono::NaiveDateTime;
 use rocket::serde::{json::Json, Deserialize, Serialize};
-use sqlx::error::DatabaseError;
 
 pub async fn get_tbl_type_dynamic(
     db_pool: &MssqlPool,
@@ -270,17 +269,12 @@ pub async fn getCase(
         ORDER BY a.foragingdays DESC;
     "#);
 
-    // Execute the SQL query with error handling
+    // Execute the SQL query
     let rows = sqlx::query(&sql_query)
         .fetch_all(db_pool)
-        .await
-        .map_err(|e| {
-            // Box the error before returning it
-            Box::new(e) as Box<dyn DatabaseError>
-        })?;
+        .await?;
 
     let mut result = Vec::new();
-
 
     // Process each row into a HashMap
     for row in rows {
