@@ -189,57 +189,7 @@ pub async fn readgettblSubType(
     Ok(result)
 }
 
-#[derive(Deserialize)]
-struct RequestData {
-    query: Option<String>,
-    col: Option<String>,
-    start: Option<i32>,
-    limit: Option<i32>,
-}
-
-#[derive(Serialize)]
-struct Case {
-    flagcompany: String,
-    ticketno: String,
-    agreementno: String,
-    branchid: String,
-    customername: String,
-    applicationid: String,
-    customerid: String,
-    statusid: i32,
-    statusdescription: String,
-    subdescription: String,
-    statusname: String,
-    typeid: i32,
-    typedescriontion: String,
-    subtypeid: i32,
-    typesubdescriontion: String,
-    priorityid: i32,
-    prioritydescription: String,
-    description: String,
-    phoneno: String,
-    email: String,
-    contactid: i32,
-    contactdescription: String,
-    relationid: i32,
-    relationdescription: String,
-    relationname: String,
-    usrupd: String,
-    dtmupd: String,
-    callerid: String,
-    email_: String,
-    date_cr: String,
-    foragingdays: i32,
-}
-
-#[derive(Serialize)]
-struct ResponseData {
-    total: i32,
-    success: bool,
-    data: Vec<Case>,
-}
-
-pub fn get_case(request: HashMap<String, String>, user_name: &str) -> String {
+pub async fn get_case(request: HashMap<String, String>, user_name: &str) -> String {
     let mut result = HashMap::new();
     let query = request.get("query").unwrap_or(&"".to_string());
     let col = request.get("col");

@@ -58,10 +58,10 @@ async fn readSubType(
 }
 
 #[get("/getCase")]
-async fn get_case(
-    db_pool: &State<MssqlPool>,
-    query: Option<String>,
-    col: Option<String>,
+async fn getCase(
+    // db_pool: &State<MssqlPool>,
+    // query: Option<String>,
+    // col: Option<String>,
 ) -> Result<Json<Vec<HashMap<String, Value>>>, String> {
     // // Ensure typeid is provided
     // let typeid = typeid.ok_or_else(|| "Missing required parameter: typeid".to_string())?;
@@ -104,7 +104,7 @@ async fn main() -> Result<(), rocket::Error> {
     rocket::build()
         .manage(db_pool)
         // .mount("/", routes![fetch_tbl_type, fetch_tbl_contact, readSubType, readBranch])
-        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,get_case])
+        .mount("/", routes![fetch_tbl_type, fetch_tbl_contact,readSubType,getCase])
         .launch()
         .await?;
 
