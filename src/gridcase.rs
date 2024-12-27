@@ -1,7 +1,7 @@
 use sqlx::{query, query_as ,Mssql, Pool};
 use sqlx::Row;
 use sqlx::mssql::MssqlPool;
-use sqlx::error::DatabaseError;
+use sqlx::{Error as SqlxError, DatabaseError};
 use serde_json::Value;
 use std::collections::HashMap;
 use chrono::NaiveDateTime;
