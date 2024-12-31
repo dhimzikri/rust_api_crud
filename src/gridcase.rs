@@ -202,14 +202,6 @@ pub async fn getCase(
     let start = start.unwrap_or(0);
     let limit = limit.unwrap_or(10);
     let count_last = start + limit;
-    let dtmupd: String = match row.try_get::<Option<String>, _>("a.foragingdays")? {
-        Some(dtm) => {
-            NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
-                .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
-                .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
-        }
-        None => "".to_string(), // Handle NULL case
-    };
 
     // Base query condition
     let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
@@ -308,6 +300,14 @@ pub async fn getCase(
         .await?;
 
     let mut result = Vec::new();
+    let foragingdays: String = match row.try_get::<Option<String>, _>("a.foragingdays")? {
+        Some(dtm) => {
+            NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
+                .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
+                .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
+        }
+        None => "".to_string(), // Handle NULL case
+    };
 
     // Process each row into a HashMap
     for row in rows {
