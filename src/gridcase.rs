@@ -337,8 +337,8 @@ pub async fn getCase(
             Value::Number(row.try_get::<i32, _>("subtypeid")?.into()),
         );
         row_map.insert(
-            "subdescription".to_string(),
-            Value::String(row.try_get::<String, _>("subdescription")?),
+            "typesubdescriontion".to_string(),
+            Value::String(row.try_get::<String, _>("typesubdescriontion")?),
         );
         row_map.insert(
             "priorityid".to_string(),
