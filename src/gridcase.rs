@@ -218,6 +218,7 @@ pub async fn getCase(
             ( SELECT ROW_NUMBER() OVER ( ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
                 a.ticketno, a.flagcompany, a.agreementno, 
                 a.applicationid,a.typeid, b.description as typedescriontion, a.subtypeid, c.SubDescription as typesubdescriontion, a.priorityid,
+                d.Description as prioritydescription, a.statusid, e.statusname, e.description as statusdescription, a.customername,
                 CONVERT(VARCHAR, a.foragingdays, 120) AS foragingdays
                 FROM
                 "Case" a
@@ -328,10 +329,6 @@ pub async fn getCase(
             Value::Number(row.try_get::<i32, _>("typeid")?.into()),
         );
         row_map.insert(
-            "description".to_string(),
-            Value::String(row.try_get::<String, _>("description")?),
-        );
-        row_map.insert(
             "typedescriontion".to_string(),
             Value::String(row.try_get::<String, _>("typedescriontion")?),
         );
@@ -347,6 +344,27 @@ pub async fn getCase(
             "priorityid".to_string(),
             Value::Number(row.try_get::<i32, _>("priorityid")?.into()),
         );
+        row_map.insert(
+            "prioritydescription".to_string(),
+            Value::String(row.try_get::<String, _>("prioritydescription")?),
+        );
+        row_map.insert(
+            "statusid".to_string(),
+            Value::Number(row.try_get::<i32, _>("statusid")?.into()),
+        );
+        row_map.insert(
+            "statusname".to_string(),
+            Value::String(row.try_get::<String, _>("statusname")?),
+        );
+        row_map.insert(
+            "statusdescription".to_string(),
+            Value::String(row.try_get::<String, _>("statusdescription")?),
+        );
+        row_map.insert(
+            "customername".to_string(),
+            Value::String(row.try_get::<String, _>("customername")?),
+        );
+
         result.push(row_map);
     }
     
@@ -370,28 +388,13 @@ pub async fn getCase(
     //         "branchid".to_string(),
     //         Value::String(row.try_get::<String, _>("BRANCHID")?),
     //     );
-    //     row_map.insert(
-    //         "customername".to_string(),
-    //         Value::String(row.try_get::<String, _>("CUSTOMERNAME")?),
-    //     );
 
     //     row_map.insert(
     //         "customerid".to_string(),
     //         Value::String(row.try_get::<String, _>("CUSTOMERID")?),
     //     );
-    //     row_map.insert(
-    //         "statusid".to_string(),
-    //         Value::Number(row.try_get::<i32, _>("STATUSID")?.into()),
-    //     );
-    //     row_map.insert(
-    //         "statusdescription".to_string(),
-    //         Value::String(row.try_get::<String, _>("STATUSDESCRIPTION")?),
-    //     );
 
-    //     row_map.insert(
-    //         "statusname".to_string(),
-    //         Value::String(row.try_get::<String, _>("STATUSNAME")?),
-    //     );
+
 
 
 
@@ -400,10 +403,7 @@ pub async fn getCase(
     //         Value::String(row.try_get::<String, _>("TYPESUBDESCRIONTION")?),
     //     );
 
-    //     row_map.insert(
-    //         "prioritydescription".to_string(),
-    //         Value::String(row.try_get::<String, _>("PRIORITYDESCRIPTION")?),
-    //     );
+
 
     //     row_map.insert(
     //         "phoneno".to_string(),
