@@ -339,6 +339,14 @@ pub async fn getCase(
             "flagcompany".to_string(),
             Value::String(row.try_get::<String, _>("flagcompany")?),
         );
+        row_map.insert(
+            "agreementno".to_string(),
+            Value::String(row.try_get::<String, _>("AGREEMENTNO")?),
+        );
+        row_map.insert(
+            "foragingdays".to_string(),
+            Value::Number(row.try_get::<i32, _>("FORAGINGDAYS")?.into()),
+        );
         result.push(row_map);
     }
     
