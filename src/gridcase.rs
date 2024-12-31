@@ -300,19 +300,19 @@ pub async fn getCase(
         .await?;
 
     let mut result = Vec::new();
-    let foragingdays: String = match row.try_get::<Option<String>, _>("a.foragingdays")? {
-        Some(dtm) => {
-            NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
-                .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
-                .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
-        }
-        None => "".to_string(), // Handle NULL case
-    };
 
     // Process each row into a HashMap
     for row in rows {
         let mut row_map = HashMap::new();
-    
+        let foragingdays: String = match row.try_get::<Option<String>, _>("a.foragingdays")? {
+            Some(dtm) => {
+                NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
+                    .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
+                    .unwrap_or_else(|_| "".to_string()) // Handle invalid datetime formats
+            }
+            None => "".to_string(), // Handle NULL case
+        };
+        
         // Using try_get to retrieve values from each column and inserting them into the row_map map
         row_map.insert(
             "flagcompany".to_string(),
