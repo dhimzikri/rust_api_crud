@@ -223,6 +223,7 @@ pub async fn getCase(
                     ORDER BY
                     RIGHT(a.ticketno, 3) DESC
                 ) AS 'RowNumber',
+                a.ticketno,
                 a.flagcompany,
                 a.agreementno,
                 CONVERT(VARCHAR, a.foragingdays, 120) AS foragingdays
@@ -321,6 +322,10 @@ pub async fn getCase(
         row_map.insert(
             "foragingdays".to_string(),
             Value::String(row.try_get::<String, _>("foragingdays")?.into()),
+        );
+        row_map.insert(
+            "ticketno".to_string(),
+            Value::String(row.try_get::<String, _>("ticketno")?),
         );
         result.push(row_map);
     }
