@@ -320,7 +320,7 @@ pub async fn getCase(
         );
         row_map.insert(
             "foragingdays".to_string(),
-            Value::Number(row.try_get::<String, _>("foragingdays")?.into()),
+            Value::String(row.try_get::<String, _>("foragingdays")?.into()),
         );
         result.push(row_map);
     }
