@@ -223,7 +223,7 @@ pub async fn getCase(
                     ORDER BY
                     RIGHT(a.ticketno, 3) DESC
                 ) AS 'RowNumber',
-                a.flagcompany,a.agreementno, a.foragingdays
+                a.flagcompany, a.agreementno, a.foragingdays
                 FROM
                 "Case" a
                 INNER JOIN tbltype b ON a.TypeID = b.TypeID
@@ -312,11 +312,11 @@ pub async fn getCase(
         );
         row_map.insert(
             "agreementno".to_string(),
-            Value::String(row.try_get::<String, _>("AGREEMENTNO")?),
+            Value::String(row.try_get::<String, _>("agreementno")?),
         );
         row_map.insert(
             "foragingdays".to_string(),
-            Value::Number(row.try_get::<i32, _>("FORAGINGDAYS")?.into()),
+            Value::Number(row.try_get::<i32, _>("foragingdays")?.into()),
         );
         result.push(row_map);
     }
