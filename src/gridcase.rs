@@ -213,8 +213,30 @@ pub async fn getCase(
 
     // SQL query
     let sql_query = format!(
-        r#"SELECT TOP (10) flagcompany FROM [Case];
-        "#,
+        r#"
+        SELECT *
+             FROM (
+                 SELECT
+                     ROW_NUMBER() OVER (ORDER BY RIGHT(a.ticketno, 3) DESC) AS 'RowNumber',
+                     a.flagcompany, a.ticketno, a.agreementno, a.applicationid, a.customerid, a.typeid, b.description AS typedescriontion,
+                     a.subtypeid, c.SubDescription AS typesubdescriontion, a.priorityid, d.Description AS prioritydescription, a.statusid,
+                     e.statusname, e.description AS statusdescription, a.customername, a.branchid, a.description, a.phoneno, a.email,
+                     a.usrupd, a.dtmupd, a.date_cr, f.contactid, f.Description AS contactdescription, a.relationid,
+                     g.description AS relationdescription, a.relationname, a.callerid, a.email_, a.foragingdays
+                 FROM "Case" a
+                 INNER JOIN tbltype b ON a.TypeID = b.TypeID
+                 INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
+                 INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
+                 INNER JOIN "status" e ON a.statusid = e.statusid
+                 INNER JOIN "contact" f ON a.contactid = f.contactid
+                 INNER JOIN "relation" g ON a.relationid = g.relationid
+                 WHERE {src}
+             ) AS a
+             WHERE RowNumber > {start} AND RowNumber <= {count_last}
+             ORDER BY a.foragingdays DESC;
+             "#,
+        // r#"SELECT TOP (10) flagcompany FROM [Case];
+        // "#,
         // src = src,
         // start = start,
         // count_last = count_last
