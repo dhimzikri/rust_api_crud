@@ -223,7 +223,9 @@ pub async fn getCase(
                     ORDER BY
                     RIGHT(a.ticketno, 3) DESC
                 ) AS 'RowNumber',
-                a.flagcompany, a.agreementno, CONVERT(VARCHAR, a.foragingdays, 120)
+                a.flagcompany,
+                a.agreementno,
+                CONVERT(VARCHAR, a.foragingdays, 120) AS foragingdays_str
                 FROM
                 "Case" a
                 INNER JOIN tbltype b ON a.TypeID = b.TypeID
@@ -233,15 +235,9 @@ pub async fn getCase(
                 INNER JOIN status e ON a.statusid = e.statusid
                 INNER JOIN contact f ON a.contactid = f.contactid
                 INNER JOIN relation g ON a.relationid = g.relationid
-                WHERE
-                0 = 0
-                AND a.statusid <> 1
-                AND a.usrupd = '8023'
-                AND agreementno LIKE '%454301200708%'
+                WHERE {src}
             ) AS a
-            WHERE
-            RowNumber > 0
-            AND RowNumber <= 10
+            WHERE RowNumber > {start} AND RowNumber <= {count_last}
             ORDER BY
             a.foragingdays DESC;
              "#,
