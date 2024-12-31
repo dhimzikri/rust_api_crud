@@ -226,10 +226,10 @@ pub async fn getCase(
                  FROM "Case" a
                  INNER JOIN tbltype b ON a.TypeID = b.TypeID
                  INNER JOIN tblSubtype c ON a.SubTypeID = c.SubTypeID AND a.TypeID = c.TypeID
-                 INNER JOIN "Priority" d ON a.PriorityID = d.PriorityID
-                 INNER JOIN "status" e ON a.statusid = e.statusid
-                 INNER JOIN "contact" f ON a.contactid = f.contactid
-                 INNER JOIN "relation" g ON a.relationid = g.relationid
+                 INNER JOIN Priority d ON a.PriorityID = d.PriorityID
+                 INNER JOIN status e ON a.statusid = e.statusid
+                 INNER JOIN contact f ON a.contactid = f.contactid
+                 INNER JOIN relation g ON a.relationid = g.relationid
                  WHERE {src}
              ) AS a
              WHERE RowNumber > {start} AND RowNumber <= {count_last}
