@@ -199,9 +199,9 @@ pub async fn getCase(
     limit: Option<i32>,
 ) -> Result<Vec<HashMap<String, Value>>, sqlx::Error> {
     let user_name = "8023"; // Replace with actual user name
-    // let start = start.unwrap_or(0);
-    // let limit = limit.unwrap_or(10);
-    // let count_last = start + limit;
+    let start = start.unwrap_or(0);
+    let limit = limit.unwrap_or(10);
+    let count_last = start + limit;
 
     // Base query condition
     let mut src = format!("0=0 AND a.statusid <> 1 AND a.usrupd = '{}'", user_name);
