@@ -223,9 +223,7 @@ pub async fn getCase(
                     ORDER BY
                     RIGHT(a.ticketno, 3) DESC
                 ) AS 'RowNumber',
-                a.flagcompany
-                a.agreementno,
-                a.foragingdays
+                a.flagcompany,a.agreementno, a.foragingdays
                 FROM
                 "Case" a
                 INNER JOIN tbltype b ON a.TypeID = b.TypeID
