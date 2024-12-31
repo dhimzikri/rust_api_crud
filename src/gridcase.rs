@@ -223,6 +223,7 @@ pub async fn getCase(
                     ORDER BY
                     RIGHT(a.ticketno, 3) DESC
                 ) AS 'RowNumber',
+                a.flagcompany
                 a.agreementno,
                 a.foragingdays
                 FROM
