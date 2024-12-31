@@ -304,7 +304,7 @@ pub async fn getCase(
     // Process each row into a HashMap
     for row in rows {
         let mut row_map = HashMap::new();
-        let foragingdays: String = match row.try_get::<Option<String>, _>("a.foragingdays")? {
+        let foragingdays: String = match row.try_get::<Option<String>, _>("foragingdays")? {
             Some(dtm) => {
                 NaiveDateTime::parse_from_str(&dtm, "%Y-%m-%d %H:%M:%S")
                     .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string()) // Ensure the format matches 2020-12-06 18:55:30
@@ -312,7 +312,7 @@ pub async fn getCase(
             }
             None => "".to_string(), // Handle NULL case
         };
-        
+
         // Using try_get to retrieve values from each column and inserting them into the row_map map
         row_map.insert(
             "flagcompany".to_string(),
