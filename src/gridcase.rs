@@ -225,7 +225,7 @@ pub async fn getCase(
                 ) AS 'RowNumber',
                 a.flagcompany,
                 a.agreementno,
-                CONVERT(VARCHAR, a.foragingdays, 120) AS foragingdays_str
+                CONVERT(VARCHAR, a.foragingdays, 120) AS foragingdays
                 FROM
                 "Case" a
                 INNER JOIN tbltype b ON a.TypeID = b.TypeID
